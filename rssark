@@ -1,0 +1,26 @@
+#!/bin/bash
+# Gets RSS feeds from ARK Survival Evolved's website and transmits the to Discord.
+# Change the rssdir if you don't want to use the current location
+rssdir=$(pwd)
+# Set your Discord webhook's url. Example: url="https://discordapp.com/api/webhooks/619303176143434675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1IWjvfdsEgkZtDMbAj2KRwVids23"
+url=" "
+
+echo "Latest ARK News" > $rssdir/latestrss.txt
+/usr/bin/rsstail -p -l -u https://survivetheark.com/index.php?/rss/3-ark-news.xml -n 3 -1 | sed '/^$/d' >> $rssdir/latestrss.txt
+
+lastrsscommit=$(cat $rssdir/lastrsscommit.txt 2> /dev/null)
+currentrss=$(cat $rssdir/latestrss.txt | grep "date:" | head -1 | sed 's/ //g')
+currentrss=${currentrss:13:9}
+
+if [ -z "$currentrss" ] || [ "$lastrsscommit" == "$currentrss" ]; then
+ exit 0
+fi
+
+echo $currentrss > $rssdir/lastrsscommit.txt
+rssdiscordlines=1
+while IFS="" read -r line || [ -n "$line" ] && [ "$rssdiscordlines" -le 4 ]; do
+ newline=$(printf '%s\n' "$line")
+ message="$newline"
+ [ ! -z "$message" ] && curl -X POST -d "content"=">>> $message" "$url"
+ rssdiscordlines=$(( $rssdiscordlines + 1 ))
+done < $rssdir/latestrss.txt
