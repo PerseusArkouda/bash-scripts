@@ -1,8 +1,12 @@
 #!/bin/bash
-# Gets patch notes from ARK Survival Evolved's website and trasnmits them to Discord.
+# Gets patch notes from ARK Survival Evolved's website and transmits them to Discord.
+# For automation add this line to your crontab: @hourly /full/path/to/arkpatchnotes >/dev/null 2>&1
 # Change the patchnotesdir if you don't want to use the current location
 patchnotesdir=$(pwd)
 patchnotesdir="$patchnotesdir/patchnotes"
+if [ ! -d "$patchnotesdir" ]; then
+ mkdir "$patchnotesdir"
+fi
 # Set your Discord webhook's url. Example: url="https://discordapp.com/api/webhooks/619303176143434675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1IWjvfdsEgkZtDMbAj2KRwVids23"
 url=" "
 

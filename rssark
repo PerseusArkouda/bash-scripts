@@ -1,5 +1,7 @@
 #!/bin/bash
-# Gets RSS feeds from ARK Survival Evolved's website and transmits the to Discord.
+# Gets RSS feeds from ARK Survival Evolved's website and transmits them to Discord.
+# Requires rsstail.
+# For automation add this line to your crontab: @hourly /full/path/to/rssark >/dev/null 2>&1
 # Change the rssdir if you don't want to use the current location
 rssdir=$(pwd)
 # Set your Discord webhook's url. Example: url="https://discordapp.com/api/webhooks/619303176143434675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1IWjvfdsEgkZtDMbAj2KRwVids23"
