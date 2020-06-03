@@ -1,0 +1,93 @@
+#!/bin/bash
+# System Info Script
+# Written by Perseus
+# Special thanks to Phorce1 for suggestions and testing
+# Add --color parameter for colored output
+
+function cpu_count {
+ sedline=1
+ declare cpu_$count="$(grep "model name" $workdir/sysinfotmp | sed -n ${sedline}p | cut -d ":" -f2 | awk '$1=$1')"
+ tmpcpu="cpu_$count"
+ echo "${!tmpcpu}" >> $workdir/tmpcpu
+ let count=count+1
+ let sedline=sedline+1
+}
+
+function color_func {
+ color="-e" && colorend="\e[0m" && titlecolor="\e[35m" && neutral="\e[36m" && normal="\e[32m" && warning="\e[33m" && critical="\e[31m"
+ cpuloadint=$(printf '%.0f\n' "${syscpuload//%/}")
+ [ $cpuloadint -lt 80 ] && cpuloadcolor="$normal"
+ [ $cpuloadint -ge 80 ] && cpuloadcolor="$warning"
+ [ $cpuloadint -ge 90 ] && cpuloadcolor="$critical"
+ rampercent=$(( ($sysramtotal - $sysramfree) * 100 / $sysramtotal ))
+ [ $rampercent -lt 80 ] && ramcolor="$normal"
+ [ $rampercent -ge 80 ] && ramcolor="$warning"
+ [ $rampercent -ge 90 ] && ramcolor="$critical"
+ swappercent=$(( ($sysswaptotal - $sysswapfree) * 100 / $sysswaptotal ))
+ [ $swappercent -lt 80 ] && swapcolor="$normal"
+ [ $swappercent -ge 80 ] && swapcolor="$warning"
+ [ $swappercent -ge 90 ] && swapcolor="$critical"
+ diskpercent=$(( (${sysdisktotal: : -1} - ${sysdiskfree: : -1}) * 100 / ${sysdisktotal: : -1} ))
+ [ $diskpercent -lt 80 ] && diskcolor="$normal"
+ [ $diskpercent -ge 80 ] && diskcolor="$warning"
+ [ $diskpercent -ge 90 ] && diskcolor="$critical"
+}
+
+workdir=$(pwd)
+system=$(uname -nro)
+sysdistro=$(lsb_release -a 2>/dev/null | grep "Description" | grep -v "LSB" | awk '{ print substr($0, index($0,$2)) }')
+sysmanufacturer=$(sudo -S dmidecode -t system | grep "Manufacturer:" | cut -d ":" -f 2 | awk '$1=$1')
+sysmodel=$(sudo -S dmidecode -t system | grep "Product Name:" | cut -d ":" -f 2 | awk '$1=$1')
+sysuptime=$(uptime -p)
+sysdate=$(date)
+free -g > $workdir/tmpram
+sysramfree=$(grep "Mem:" $workdir/tmpram | awk '{print $4}')
+sysramtotal=$(grep "Mem:" $workdir/tmpram | awk '{print $2}')
+sysswapfree=$(grep "Swap:" $workdir/tmpram | awk '{print $4}')
+sysswaptotal=$(grep "Swap:" $workdir/tmpram | awk '{print $2}')
+rm $workdir/tmpram
+cat /proc/cpuinfo > "$workdir/sysinfotmp"
+syscpuphysical=$(grep "physical id" /proc/cpuinfo | awk '{print $4}')
+count=0
+touch $workdir/tmpcpu
+[ -z "${syscpuphysical##*0*}" ] && cpu_count && [ -z "${syscpuphysical##*1*}" ] && cpu_count && [ -z "${syscpuphysical##*3*}" ] && cpu_count && cpu_count
+syscpucores=$(grep "cpu cores" "$workdir/sysinfotmp" | awk '{print $4}')
+syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
+[ "$syscpucores" != "$syscpusiblings" ] && syscpucores=$(( $(echo "$syscpucores" | wc -l) / count )) || syscpucores=$(echo "$syscpucores" | wc -l)
+rm "$workdir/sysinfotmp"
+syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
+syscpuload="${syscpuload::-2}%"
+sysgpu=$(GPU=$(lspci | grep VGA | cut -d ":" -f3); RAM=$(cardid=$(lspci | grep VGA | cut -d " " -f1); lspci -v -s "$cardid" | grep " prefetchable" | cut -d "=" -f2); echo $GPU $RAM)
+sysrootdisk=$(lsblk -io KNAME,MOUNTPOINT | grep -w "/" | awk '{print $1}')
+sysrootdisk="${sysrootdisk%?}"
+sysrootdisk=$(lsblk -io KNAME,MODEL,MOUNTPOINT | grep -w "$sysrootdisk" | awk '{ print substr($0, index($0,$2)) }' | awk '$1=$1')
+sysdisktotal=$(df -h | grep -w "/" | awk '{print $2}')
+sysdiskfree=$(df -h | grep -w "/" | awk '{print $4}')
+sysnetworkinterface=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g')
+sysethrx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 4p | awk '{print $1}')
+sysethtx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 6p | awk '{print $1}')
+
+[ "$1" = "--color" ] && color_func
+
+echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
+echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
+echo $color "[${titlecolor}DISTRO${colorend}]: ${neutral}${sysdistro}${colorend}"
+echo $color "[${titlecolor}MODEL${colorend}]: ${neutral}${sysmanufacturer} ${sysmodel}${colorend}"
+i=0
+while read line ; do
+ echo $color "[${titlecolor}CPU${i}${colorend}]: ${neutral}${line}${colorend}"
+ let i=i+1
+done < $workdir/tmpcpu
+rm $workdir/tmpcpu
+echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend}"
+echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}"
+ramsize="GB"
+swapsize="GB"
+[ "$sysramfree" -le 0 ] && sysramfree=$(free -m | grep "Mem:" | awk '{print $4}') && ramsize="MB" && ramcolor="$critical"
+[ "$sysswapfree" -le 0 ] && sysswapfree=$(free -m | grep "Swap:" | awk '{print $4}') && swapsize="MB" && swapcolor="$critical"
+echo $color "[${titlecolor}FREE RAM${colorend}]: ${ramcolor}${sysramfree}${ramsize}${colorend} - [${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}GB${colorend}"
+[ ! -z "$sysswapfree" ] && echo $color "[${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${swapsize}${colorend} - [${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}GB${colorend}"
+echo $color "[${titlecolor}ROOT DISK${colorend}]: ${neutral}${sysrootdisk}${colorend} - [${titlecolor}FREE DISKSPACE${colorend}]: ${diskcolor}${sysdiskfree}B${colorend} - [${titlecolor}TOTAL DISKSPACE${colorend}]: ${neutral}${sysdisktotal}B${colorend}"
+echo $color "[${titlecolor}NETWORK RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}NETWORK SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
+echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}${colorend}"
+echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
