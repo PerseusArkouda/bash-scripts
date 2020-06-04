@@ -18,5 +18,5 @@ if [ ! "$lastpubdate" == "$newpubdate" ]; then
  echo "$newpubdate" > "$patchnotesdir/lastpubdate.txt"
  echo "ARK Update Released:" > "$patchnotesdir/arkpatchnotes.txt"
  echo "Link: $pcpatchnotesurl" >> "$patchnotesdir/arkpatchnotes.txt"
- curl --data-binary "content"="$(<$patchnotesdir/arkpatchnotes.txt)" "url"
+ curl --data-binary "content"="$(<$patchnotesdir/arkpatchnotes.txt)" "$url"
 fi
