@@ -1,0 +1,32 @@
+#!/bin/bash
+# Accepts Twitter user names as a parameter and posts to a discord's webhook their latest tweet.
+# Requires twarc. Install python 2 or 3 and run: pip install twarc.
+# For automation put a line in crontab like (for every 15 mins): */15 * * * * /path/to/tweet2 survivetheark
+# Change workdir if you don't want to use the current dir.
+workdir=$(pwd)
+workdir=$workdir/tweet2dir
+# twarc's path. Change if different.
+twarcpath=/home/$USER/.local/bin
+# Add discord_url with your webhook's url. Like: https://discordapp.com/api/webhooks/619543534180465675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1fdg4vEgkZtDMbAj2KRwVids230m
+discord_url=" "
+
+function discord_func {
+ [ ! -z "$message" ] && curl -X POST -d "content"=">>> $message" "$discord_url"
+ # Comment in the rm command below in case you need the csv file for debug purposes
+ rm $csv
+}
+
+function message_func {
+ message="Latest tweet from $user:" && discord_func && message="https://twitter.com/survivetheark/status/${latest}" && discord_func
+}
+
+[ ! -d $workdir ] && mkdir $workdir
+[ -z $1 ] && echo "You must provide a twitter user name as parameter. Exiting..." && exit 1
+user=$1
+csv=${workdir}/${user}.csv
+previous=${workdir}/${user}.txt
+latest="$($twarcpath/twarc timeline $user --format csv > $csv && twt=$(sed '/@/d' $csv | sed '/^#/d' | grep -v "parsed_created_at" | xargs 2>/dev/null | sed -n 1p) && echo "${twt%%,*}")"
+[ ! -f $csv ] && echo "Failed to get latest tweet for $user. Exiting..." && exit 1
+[ ! -f $previous ] && [ ! -z $latest ] && echo "$latest" > $previous && message_func
+last=$(cat $previous)
+[ ! $latest == $last ] && [ ! -z $latest ] && echo "$latest" > $previous && message_func
