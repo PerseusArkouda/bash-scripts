@@ -4,7 +4,7 @@
 # For automation put a line in crontab like (for every 15 mins): */15 * * * * /path/to/tweet2 survivetheark
 # Change workdir if you don't want to use the current dir.
 workdir=$(pwd)
-workdir=$workdir/tweet2dir
+workdir=$workdir/.tweet2dir
 # twarc's path. Change if different.
 twarcpath=/home/$USER/.local/bin
 # Add discord_url with your webhook's url. Like: https://discordapp.com/api/webhooks/619543534180465675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1fdg4vEgkZtDMbAj2KRwVids230m

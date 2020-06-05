@@ -1,0 +1,52 @@
+#!/bin/bash
+echo "---------------------------------"
+echo " Quick SMART test for SATA disks."
+echo " By Perseus                      "
+echo "---------------------------------"
+echo "Available parameters: -showerrors"
+echo
+echo
+
+if [ ! -f "/usr/sbin/smartctl" ]; then
+ echo "Script requires smartmontools package to be installed in order to work."
+ echo "Install smartmontools and try again. Exiting..."
+ exit 1
+fi
+
+count=1
+echo "Running smartctl (requires sudo)..."
+for i in `/bin/lsblk -o NAME | grep "sd" | grep '^[a-z]*$'`; do
+ smartout=$(sudo /usr/sbin/smartctl -a /dev/${i})
+ health=$(echo "$smartout" | grep "overall-health")
+ smarton=$(echo "$smartout" | grep "SMART support is:" | head -1)
+ if [ ! -z "${smarton##*Available*}" ]; then
+  echo
+  echo "Disk $count on /dev/${i} has no SMART support!"
+ else
+  if [ ! -z "${health##*PASSED*}" ]; then
+   echo
+   echo "Error. Disk $count on /dev/${i} has not passed the SMART test!"
+   exit 1
+  fi
+  echo
+  echo "Disk $count on /dev/${i}:"
+  echo "$smartout" | grep "Model Family:"
+  echo "$smartout" | grep "User Capacity:"
+  echo "$smartout" | grep "SATA Version is:"
+  echo "$smartout" | grep "SMART support is:"
+  echo "/dev/${i}: $smartout" | grep "SMART overall-health"
+  errors=$(sudo smartctl --quietmode=errorsonly --all /dev/${i})
+  if [ ! -z "$1" ] && [ "$1" == "-showerrors" ] && [ ! -z "$errors" ]; then
+   echo
+   echo "Errors found for Disk $count on /dev/${i}:"
+   echo "$errors"
+  elif [ ! -z "$1" ] && [ "$1" == "-showerrors" ] && [ -z "$errors" ]; then
+   echo
+   echo "No errors found for Disk $count on /dev/${i}."
+  fi
+ fi
+ let count=count+1
+done
+
+echo
+echo "Success. All connected SATA disks have passed the SMART test."

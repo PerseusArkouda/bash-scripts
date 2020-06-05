@@ -4,8 +4,9 @@
 # For automation add this line to your crontab: @hourly /full/path/to/rssark >/dev/null 2>&1
 # Change the rssdir if you don't want to use the current location
 rssdir=$(pwd)
+rssdir=$rssdir/.rssdir
 # Set your Discord webhook's url. Example: url="https://discordapp.com/api/webhooks/619303176143434675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1IWjvfdsEgkZtDMbAj2KRwVids23"
-url=" "
+discord_url=" "
 
 echo "Latest ARK News" > $rssdir/latestrss.txt
 /usr/bin/rsstail -p -l -u https://survivetheark.com/index.php?/rss/3-ark-news.xml -n 3 -1 | sed '/^$/d' >> $rssdir/latestrss.txt
@@ -23,6 +24,6 @@ rssdiscordlines=1
 while IFS="" read -r line || [ -n "$line" ] && [ "$rssdiscordlines" -le 4 ]; do
  newline=$(printf '%s\n' "$line")
  message="$newline"
- [ ! -z "$message" ] && curl -X POST -d "content"=">>> $message" "$url"
+ [ ! -z "$message" ] && curl -X POST -d "content"=">>> $message" "$discord_url"
  rssdiscordlines=$(( $rssdiscordlines + 1 ))
 done < $rssdir/latestrss.txt
