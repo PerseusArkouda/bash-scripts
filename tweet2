@@ -1,6 +1,6 @@
 #!/bin/bash
 # Accepts Twitter user names as a parameter and posts to a discord's webhook their latest tweet.
-# Requires twarc. Install python 2 or 3 and run: pip install twarc.
+# Requires twarc. Install python 2 or 3 and run: pip install twarc. Run twarc configure.
 # For automation put a line in crontab like (for every 15 mins): */15 * * * * /path/to/tweet2 survivetheark
 # Change workdir if you don't want to use the current dir.
 workdir=$(pwd)
@@ -17,7 +17,7 @@ function discord_func {
 }
 
 function message_func {
- message="Latest tweet from $user:" && discord_func && message="https://twitter.com/survivetheark/status/${latest}" && discord_func
+ message="Latest tweet from $user:" && discord_func && message="https://twitter.com/$user/status/${latest}" && discord_func
 }
 
 [ ! -d $workdir ] && mkdir $workdir
