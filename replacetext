@@ -1,0 +1,13 @@
+#!/bin/bash
+# Text replacing tool
+# This script finds and replaces text on files on current dir and it's subdirs.
+# Syntax: ./replacetext "text to be replaced" "text to replace"
+
+# REQUIRES TESTING
+
+[ -z "$1" ] && echo "You have to add as first parameter the text to be replaced. Exiting." && exit 1
+[ -z "$2" ] && echo "You have to add as the second parameter the text to replace. Exiting." && exit 1
+
+grep -rl  --exclude=$(basename $0) "$1" ./ | xargs sed -i "s@$1@$2@g"
+echo "Replaced $1 with $2 on $(pwd) and it's subdirs."
+echo "Script is finished."
