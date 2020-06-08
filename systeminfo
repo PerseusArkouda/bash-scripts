@@ -27,7 +27,7 @@ function color_func {
  [ $swappercent -lt 80 ] && swapcolor="$normal"
  [ $swappercent -ge 80 ] && swapcolor="$warning"
  [ $swappercent -ge 90 ] && swapcolor="$critical"
- diskpercent=$(( (${sysdisktotal: : -1} - ${sysdiskfree: : -1}) * 100 / ${sysdisktotal: : -1} ))
+ diskpercent=$(( ($(printf '%.0f\n' "${sysdisktotal//G/}") - $(printf '%.0f\n' "${sysdiskfree//G/}")) * 100 / $(printf '%.0f\n' "${sysdisktotal//G/}") ))
  [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ $diskpercent -ge 90 ] && diskcolor="$critical"
@@ -56,7 +56,7 @@ syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
 [ "$syscpucores" != "$syscpusiblings" ] && syscpucores=$(( $(echo "$syscpucores" | wc -l) / count )) || syscpucores=$(echo "$syscpucores" | wc -l)
 rm "$workdir/sysinfotmp"
 syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
-syscpuload="${syscpuload::-2}%"
+[ "${syscpuload#*.}" -gt 2 ] && syscpuload="${syscpuload: : -2}%" || syscpuload="${syscpuload}%"
 sysgpu=$(GPU=$(lspci | grep VGA | cut -d ":" -f3); RAM=$(cardid=$(lspci | grep VGA | cut -d " " -f1); lspci -v -s "$cardid" | grep " prefetchable" | cut -d "=" -f2); echo $GPU $RAM)
 sysrootdisk=$(lsblk -io KNAME,MOUNTPOINT | grep -w "/" | awk '{print $1}')
 sysrootdisk="${sysrootdisk%?}"
