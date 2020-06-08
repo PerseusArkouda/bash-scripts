@@ -56,7 +56,8 @@ syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
 [ "$syscpucores" != "$syscpusiblings" ] && syscpucores=$(( $(echo "$syscpucores" | wc -l) / count )) || syscpucores=$(echo "$syscpucores" | wc -l)
 rm "$workdir/sysinfotmp"
 syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
-[ "${syscpuload#*.}" -gt 2 ] && syscpuload="${syscpuload: : -2}%" || syscpuload="${syscpuload}%"
+syscpuload=$(printf '%.2f' "$syscpuload")
+syscpuload="${syscpuload}%"
 sysgpu=$(GPU=$(lspci | grep VGA | cut -d ":" -f3); RAM=$(cardid=$(lspci | grep VGA | cut -d " " -f1); lspci -v -s "$cardid" | grep " prefetchable" | cut -d "=" -f2); echo $GPU $RAM)
 sysrootdisk=$(lsblk -io KNAME,MOUNTPOINT | grep -w "/" | awk '{print $1}')
 sysrootdisk="${sysrootdisk%?}"
