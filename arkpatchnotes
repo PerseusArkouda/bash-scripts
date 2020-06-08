@@ -1,5 +1,6 @@
 #!/bin/bash
 # Gets patch notes from ARK Survival Evolved's website and transmits them to Discord.
+# Requires html2text.
 # For automation add this line to your crontab: @hourly /full/path/to/arkpatchnotes >/dev/null 2>&1
 # Change the patchnotesdir if you don't want to use the current location
 patchnotesdir=$(pwd)
