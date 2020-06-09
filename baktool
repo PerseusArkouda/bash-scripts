@@ -63,11 +63,13 @@ while [ $count -le $countplans ]; do
  [ ! -d "$srcplan" ] && echo "Error. Source directory cannot be found. Backup aborted." && echo "You can fix manually by editing Source_Plan${count} path in: $config" && exit 1
  rsync_params=$(echo "$dry_flag ${rsync_flags}${verbose_mode} $delete_flag $exclude_flag $srcplan $dstplan" | awk '$1=$1')
  [ ! -f "$lockfile" ] && touch "$lockfile" || echo "An rsync job is already running. Execution aborted. Exiting." && exit 1
+ echo
+ echo "Starting backup of Plan${count}:"
  false
  rsync $rsync_params
  errorlevel="$?"
  [ -f "$lockfile" ] && rm "$lockfile"
- #rsync "${dry_flag}${exclude_flag}${delete_flag}" "${rsync_flags}${verbose_mode}" "$srcplan" "$dstplan"
+ echo
  [ $errorlevel -eq 1 ] && echo "Error. Backup of Plan${count} failed!" && exit 1 || echo "Backup of Plan${count} has been finished."
  sleep 5
  let count=count+1
