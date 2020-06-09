@@ -41,7 +41,7 @@ function config_func {
  echo "Destination_Plan${countplans}: $destination" >> "$config"
  echo "Config saved."
  echo
- read -rp "Run backup(s) now? (Y/n):" "runconfirm"
+ read -rp "Run backup(s) now? (Y/n): " "runconfirm"
  [ "$runconfirm" == "n" ] || [ "$runconfirm" == "N" ] && echo "Aborted. Exiting." && exit 0
 }
 
