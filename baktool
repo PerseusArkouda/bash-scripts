@@ -1,0 +1,77 @@
+#!/bin/bash
+# Backup tool to get local incremental backups
+# Requires rsync.
+# The source directory will be copied as is and is not required to include it's name to the destination.
+# Example: source: /home/john/mysource destination: /mnt/backupdisk (mysource directory will be saved into your backupdisk directory)
+# Accepts parameter: -new (for new backup plans). -reset (delete all current backup plans. Not the backups.)
+# For automation add an entry to your crontab like: @daily /path/to/baktool
+
+# Change the workdir path if you don't want to use the current directory.
+workdir=$(pwd)
+me=$(basename "$0")
+workdir="$workdir/.${me}"
+[ ! -d "$workdir" ] && mkdir "$workdir"
+lockfile="$workdir/rsyncjob.lock"
+config="$workdir/${me}.conf"
+
+# Special config. Don't edit if not sure.
+# verbose mode. verbose_mode="" to disable.
+verbose_mode="v"
+# rsync flags. man rsync for more info.
+rsync_flags="-aAHX"
+# deletes the files or directories on destination if they are deleted on source. delete_flag="" to disable.
+delete_flag="--delete"
+# exludes files or directories from backup separated by space. Example exclude_flag="--exclude=*.pdf *.rpm".
+exclude_flag=""
+# dry flag simulates a backup without actually proceeding if not sure about the result. dry_flag="" to disable.
+dry_flag="--dry-run"
+
+function config_func {
+ echo
+ read -rp "Enter full path of the source directory you want to backup: " "source"
+ [ -z "$source" ] && echo "Error. Source directory cannot be empty." && exit 1
+ read -rp "Enter full path to the destination directory you want to save the backup: " "destination"
+ [ -z "$destination" ] && echo "Error. Destination directory cannot be empty." && exit 1
+ echo "You will get a backup from: $source" && echo "And it will be saved to: $destination"
+ read -rp "Is it correct? (Y/n): " "confirm"
+ [ "$confirm" == "n" ] || [ "$confirm" == "N" ] && echo "Aborted. Exiting." && exit 0
+ [ ! -d "$source" ] && echo "Error. Source directory cannot be found. Adding plan aborted." && exit 1
+ let countplans=countplans+1
+ echo "Source_Plan${countplans}: $source" >> "$config"
+ echo "Destination_Plan${countplans}: $destination" >> "$config"
+ echo "Config saved."
+ echo
+ read -rp "Run backup(s) now? (Y/n):" "runconfirm"
+ [ "$runconfirm" == "n" ] || [ "$runconfirm" == "N" ] && echo "Aborted. Exiting." && exit 0
+}
+
+[ "$1" == "-reset" ] && rm "$config" && echo "Current backup plans are deleted. Not the backups." && exit 0
+
+[ ! -z "$dry_flag" ] && echo "*** dry_flag is enabled. baktool with dry_flag set to --dry-run will just simulate the backup without actually copying anything." && echo "*** Disable dry_flag once you are sure your backup plans are working correctly." && echo
+
+countplans=0
+[ -f "$config" ] && countplans=$(grep "Source_Plan" "$config" | wc -l) && [ $countplans -lt 1 ] && countplans=0 && rm "$config"
+
+[ ! -f "$config" ] && echo "baktool - local incremental backup tool using rsync" && echo && echo "This is the first run. Create a new backup plan." && echo "# Auto generated config file from baktool script." > "$config" && config_func
+
+[ "$1" == "-new" ] && echo "Add a new backup plan." && config_func
+
+count=1
+while [ $count -le $countplans ]; do
+ srcplan=$(grep "Source_Plan${count}" "$config" | awk '{print $2}')
+ dstplan=$(grep "Destination_Plan${count}" "$config" | awk '{print $2}')
+ [ ! -d "$srcplan" ] && echo "Error. Source directory cannot be found. Backup aborted." && echo "You can fix manually by editing Source_Plan${count} path in: $config" && exit 1
+ rsync_params=$(echo "$dry_flag ${rsync_flags}${verbose_mode} $delete_flag $exclude_flag $srcplan $dstplan" | awk '$1=$1')
+ [ ! -f "$lockfile" ] && touch "$lockfile" || echo "An rsync job is already running. Execution aborted. Exiting." && exit 1
+ false
+ rsync $rsync_params
+ errorlevel="$?"
+ [ -f "$lockfile" ] && rm "$lockfile"
+ #rsync "${dry_flag}${exclude_flag}${delete_flag}" "${rsync_flags}${verbose_mode}" "$srcplan" "$dstplan"
+ [ $errorlevel -eq 1 ] && echo "Error. Backup of Plan${count} failed!" && exit 1 || echo "Backup of Plan${count} has been finished."
+ sleep 5
+ let count=count+1
+done
+
+echo
+echo "All backup plans are finished."
