@@ -45,6 +45,19 @@ function config_func {
  [ "$runconfirm" == "n" ] || [ "$runconfirm" == "N" ] && echo "Aborted. Exiting." && exit 0
 }
 
+function start_backup {
+ rsync_params=$(echo "$dry_flag ${rsync_flags}${verbose_mode} $delete_flag $exclude_flag $srcplan $dstplan" | awk '$1=$1')
+ [ ! -f "$lockfile" ] && touch "$lockfile" || echo "An rsync job is already running. Execution aborted. Exiting." && exit 1
+ echo
+ echo "Starting backup of Plan${count}:"
+ false
+ rsync $rsync_params
+ errorlevel="$?"
+ [ -f "$lockfile" ] && rm "$lockfile"
+ [ $errorlevel -eq 1 ] && echo "Error. Backup of Plan${count} failed!" && exit 1 || echo "Backup of Plan${count} has been finished."
+ sleep 5
+}
+
 [ "$1" == "-reset" ] && rm "$config" && echo "Current backup plans are deleted. Not the backups." && exit 0
 
 [ ! -z "$dry_flag" ] && echo "*** dry_flag is enabled. $me with dry_flag set to --dry-run will just simulate the backup without actually copying anything." && echo "*** Disable dry_flag once you are sure your backup plans are working correctly." && echo
@@ -59,19 +72,11 @@ countplans=0
 count=1
 while [ $count -le $countplans ]; do
  srcplan=$(grep "Source_Plan${count}" "$config" | awk '{print $2}')
+ [ -z "$srcplan" ] && skip=1 || skip=0
  dstplan=$(grep "Destination_Plan${count}" "$config" | awk '{print $2}')
  [ ! -d "$srcplan" ] && echo "Error. Source directory cannot be found. Backup aborted." && echo "You can fix manually by editing Source_Plan${count} path in: $config" && exit 1
- rsync_params=$(echo "$dry_flag ${rsync_flags}${verbose_mode} $delete_flag $exclude_flag $srcplan $dstplan" | awk '$1=$1')
- [ ! -f "$lockfile" ] && touch "$lockfile" || echo "An rsync job is already running. Execution aborted. Exiting." && exit 1
+ [ $skip -eq 0 ] && start_backup
  echo
- echo "Starting backup of Plan${count}:"
- false
- rsync $rsync_params
- errorlevel="$?"
- [ -f "$lockfile" ] && rm "$lockfile"
- echo
- [ $errorlevel -eq 1 ] && echo "Error. Backup of Plan${count} failed!" && exit 1 || echo "Backup of Plan${count} has been finished."
- sleep 5
  let count=count+1
 done
 
