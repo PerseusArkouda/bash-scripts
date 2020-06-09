@@ -47,12 +47,12 @@ function config_func {
 
 [ "$1" == "-reset" ] && rm "$config" && echo "Current backup plans are deleted. Not the backups." && exit 0
 
-[ ! -z "$dry_flag" ] && echo "*** dry_flag is enabled. baktool with dry_flag set to --dry-run will just simulate the backup without actually copying anything." && echo "*** Disable dry_flag once you are sure your backup plans are working correctly." && echo
+[ ! -z "$dry_flag" ] && echo "*** dry_flag is enabled. $me with dry_flag set to --dry-run will just simulate the backup without actually copying anything." && echo "*** Disable dry_flag once you are sure your backup plans are working correctly." && echo
 
 countplans=0
 [ -f "$config" ] && countplans=$(grep "Source_Plan" "$config" | wc -l) && [ $countplans -lt 1 ] && countplans=0 && rm "$config"
 
-[ ! -f "$config" ] && echo "baktool - local incremental backup tool using rsync" && echo && echo "This is the first run. Create a new backup plan." && echo "# Auto generated config file from baktool script." > "$config" && config_func
+[ ! -f "$config" ] && echo "$me - local incremental backup tool using rsync" && echo && echo "This is the first run. Create a new backup plan." && echo "# Auto generated config file from $me script." > "$config" && config_func
 
 [ "$1" == "-new" ] && echo "Add a new backup plan." && config_func
 
