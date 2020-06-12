@@ -5,8 +5,10 @@
 # Example: source: /home/john/mysource destination: /mnt/backupdisk (mysource directory will be saved into your backupdisk directory)
 # Accepts parameter: -new (for new backup plans). -reset (delete all current backup plans. Not the backups.)
 # For automation add an entry to your crontab like: @daily /path/to/baktool
+# In case of errors it will generate an error log in your $workdir directory. Always use dry_flag=--dry-run for testing!!
 
 # Change the workdir path if you don't want to use the current directory.
+# In case you use crontab for automation better use the full path to the script directory or else crontab will use your home directory.
 workdir=$(pwd)
 me=$(basename "$0")
 workdir="$workdir/.${me}"
@@ -15,18 +17,19 @@ lockfile="$workdir/rsyncjob.lock"
 config="$workdir/${me}.conf"
 
 # Special config. Don't edit if not sure.
-# verbose mode. verbose_mode="" to disable.
-verbose_mode="v"
+# verbose mode. verbose_flag="" to disable.
+verbose_flag="v"
 # rsync flags. man rsync for more info.
 rsync_flags="-aAHX"
-# deletes the files or directories on destination if they are deleted on source. delete_flag="" to disable.
-delete_flag="--delete"
-# exludes files or directories defined in file from backup.
-# Example exclude_flag="--exclude-from=baktool-exclude-example.txt".
-exclude_flag=""
+# deletes the files or directories on destination if they are deleted on source. delete_flag="--delete" to enable.
+delete_flag=""
+# exludes files or directories from backup. See the baktool-exclude-example.txt from repository.
+# Enable it like that if you have the file in place: excludefile="${workdir}/baktool-exclude-example.txt"
+excludefile=""
 # dry flag simulates a backup without actually proceeding if not sure about the result. dry_flag="" to disable.
 dry_flag="--dry-run"
-# system backup requires sudo. Enable root with root="sudo"
+# system backup requires sudo.
+# Enable root with root="sudo" or root="sudo -S" if you have set passwordless sudo privileges with sudo visudo.
 root=""
 
 function config_func {
@@ -49,15 +52,20 @@ function config_func {
 }
 
 function start_backup {
- rsync_params=$(echo "$dry_flag ${rsync_flags}${verbose_mode} $delete_flag $exclude_flag $srcplan $dstplan" | awk '$1=$1')
+ [ -f "$excludefile" ] && excludes=$(cat "$excludefile" | tr '\n' ',') && exclude_flag="--exclude={${excludes%,*}}"
  [ ! -f "$lockfile" ] && touch "$lockfile" || (echo "An rsync job is already running. Execution aborted. Exiting." && exit 1)
  echo
  echo "Starting backup of Plan${count}:"
  false
- $sudo rsync $rsync_params
+ eval "${root}" rsync "${dry_flag}" "${rsync_flags}${verbose_mode}" "${delete_flag}" "${exclude_flag}" "${srcplan}" "${dstplan}"
  errorlevel="$?"
  [ -f "$lockfile" ] && rm "$lockfile"
- [ $errorlevel -eq 1 ] && echo "Error. Backup of Plan${count} failed!" && exit 1 || echo "Backup of Plan${count} has been finished."
+ if [ $errorlevel -eq 0 ]; then
+  echo "Backup of Plan${count} has been finished." && echo "$(date) - Backup of Plan${count} finished." >> ${workdir}/${me}.log
+ else
+  echo "Error. Backup of Plan${count} failed!" && echo "$(date) - Backup of Plan${count} failed!" >> ${workdir}/${me}.log
+  exit 1
+ fi
  sleep 5
 }
 
