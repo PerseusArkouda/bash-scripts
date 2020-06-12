@@ -1,0 +1,6 @@
+/mnt/*
+/proc/*
+/dev/*
+/media/*
+/sys/*
+/lost+found/*

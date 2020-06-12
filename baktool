@@ -21,7 +21,8 @@ verbose_mode="v"
 rsync_flags="-aAHX"
 # deletes the files or directories on destination if they are deleted on source. delete_flag="" to disable.
 delete_flag="--delete"
-# exludes files or directories from backup separated by space. Example exclude_flag="--exclude=*.pdf *.rpm".
+# exludes files or directories defined in file from backup.
+# Example exclude_flag="--exclude-from=baktool-exclude-example.txt".
 exclude_flag=""
 # dry flag simulates a backup without actually proceeding if not sure about the result. dry_flag="" to disable.
 dry_flag="--dry-run"
