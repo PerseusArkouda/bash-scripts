@@ -26,6 +26,8 @@ delete_flag="--delete"
 exclude_flag=""
 # dry flag simulates a backup without actually proceeding if not sure about the result. dry_flag="" to disable.
 dry_flag="--dry-run"
+# system backup requires sudo. Enable root with root="sudo"
+root=""
 
 function config_func {
  echo
@@ -52,7 +54,7 @@ function start_backup {
  echo
  echo "Starting backup of Plan${count}:"
  false
- rsync $rsync_params
+ $sudo rsync $rsync_params
  errorlevel="$?"
  [ -f "$lockfile" ] && rm "$lockfile"
  [ $errorlevel -eq 1 ] && echo "Error. Backup of Plan${count} failed!" && exit 1 || echo "Backup of Plan${count} has been finished."
