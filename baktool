@@ -32,7 +32,7 @@ function config_func {
  [ -z "$source" ] && echo "Error. Source directory cannot be empty." && exit 1
  read -rp "Enter full path to the destination directory you want to save the backup: " "destination"
  [ -z "$destination" ] && echo "Error. Destination directory cannot be empty." && exit 1
- echo "You will get a backup from: $source" && echo "And it will be saved to: $destination"
+ echo "You will get a backup from: $source" ; echo "And it will be saved to: $destination"
  read -rp "Is it correct? (Y/n): " "confirm"
  [ "$confirm" == "n" ] || [ "$confirm" == "N" ] && echo "Aborted. Exiting." && exit 0
  [ ! -d "$source" ] && echo "Error. Source directory cannot be found. Adding plan aborted." && exit 1
@@ -47,7 +47,7 @@ function config_func {
 
 function start_backup {
  rsync_params=$(echo "$dry_flag ${rsync_flags}${verbose_mode} $delete_flag $exclude_flag $srcplan $dstplan" | awk '$1=$1')
- [ ! -f "$lockfile" ] && touch "$lockfile" || echo "An rsync job is already running. Execution aborted. Exiting." && exit 1
+ [ ! -f "$lockfile" ] && touch "$lockfile" || (echo "An rsync job is already running. Execution aborted. Exiting." && exit 1)
  echo
  echo "Starting backup of Plan${count}:"
  false
