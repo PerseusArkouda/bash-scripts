@@ -1,8 +1,10 @@
 #!/bin/bash
 # System Info Script
 # Written by Perseus
+# Can detect multiple CPUs / Disks / Network Interfaces
 # Special thanks to Phorce1 for suggestions and testing
-# Add --color parameter for colored output
+# Add --color parameter for colored output.
+# Put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --color"
 
 function cpu_count {
  sedline=1
@@ -79,11 +81,6 @@ while true; do
  [ $count -ge 20 ] && disks=$count && break
 done
 rm "$workdir/diskstmp"
-#sysrootdisk=$(lsblk -io KNAME,MOUNTPOINT | grep -w "/" | awk '{print $1}')
-#sysrootdisk="${sysrootdisk%?}"
-#sysrootdisk=$(lsblk -io KNAME,MODEL,MOUNTPOINT | grep -w "$sysrootdisk" | awk '{ print substr($0, index($0,$2)) }' | awk '$1=$1')
-#sysdisktotal=$(df -h | grep -w "/" | awk '{print $2}')
-#sysdiskfree=$(df -h | grep -w "/" | awk '{print $4}')
 sysnetworkinterfaces=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g')
 sysnetworkinterfacescount=$(echo "$sysnetworkinterfaces" | wc -l)
 ethcount=1
@@ -94,8 +91,6 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  eval sysethtx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 6p | awk '{print $1}')
  let ethcount=ethcount+1
 done
-#sysethrx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 4p | awk '{print $1}')
-#sysethtx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 6p | awk '{print $1}')
 
 [ "$1" = "--color" ] && color_func
 
@@ -119,7 +114,6 @@ swapsize="GB"
 [ "$sysswapfree" -le 0 ] && sysswapfree=$(free -m | grep "Swap:" | awk '{print $4}') && swapsize="MB" && swapcolor="$critical"
 echo $color "[${titlecolor}FREE RAM${colorend}]: ${ramcolor}${sysramfree}${ramsize}${colorend} - [${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}GB${colorend}"
 [ ! -z "$sysswapfree" ] && echo $color "[${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${swapsize}${colorend} - [${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}GB${colorend}"
-#echo $color "[${titlecolor}ROOT DISK${colorend}]: ${neutral}${sysrootdisk}${colorend} - [${titlecolor}FREE DISKSPACE${colorend}]: ${diskcolor}${sysdiskfree}B${colorend} - [${titlecolor}TOTAL DISKSPACE${colorend}]: ${neutral}${sysdisktotal}B${colorend}"
 i=1
 while [ $i -le $disks ]; do
  dev="dev${i}"
@@ -138,7 +132,6 @@ while [ $i -le $ethcount ]; do
  eval sysethrx=\$"sysethrx${i}"
  eval sysethtx=\$"sysethtx${i}"
  eval sysethinterface=\$"sysethinterface${i}"
- #sysethinterface=$(echo "${sysethinterface##*{}}")
  [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} - [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
  let i=i+1
 done
