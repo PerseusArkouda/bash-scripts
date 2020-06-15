@@ -23,17 +23,14 @@ function color_func {
  [ $rampercent -lt 80 ] && ramcolor="$normal"
  [ $rampercent -ge 80 ] && ramcolor="$warning"
  [ $rampercent -ge 90 ] && ramcolor="$critical"
- swappercent=$(( ($sysswaptotal - $sysswapfree) * 100 / $sysswaptotal ))
- [ $swappercent -lt 80 ] && swapcolor="$normal"
- [ $swappercent -ge 80 ] && swapcolor="$warning"
- [ $swappercent -ge 90 ] && swapcolor="$critical"
- diskpercent=$(( ($(printf '%.0f\n' "${sysdisktotal//G/}") - $(printf '%.0f\n' "${sysdiskfree//G/}")) * 100 / $(printf '%.0f\n' "${sysdisktotal//G/}") ))
- [ $diskpercent -lt 80 ] && diskcolor="$normal"
- [ $diskpercent -ge 80 ] && diskcolor="$warning"
- [ $diskpercent -ge 90 ] && diskcolor="$critical"
+ [ ! -z "$sysswaptotal" ] && swappercent=$(( ($sysswaptotal - $sysswapfree) * 100 / $sysswaptotal ))
+ [ ! -z "swappercent" ] && [ $swappercent -lt 80 ] && swapcolor="$normal"
+ [ ! -z "swappercent" ] && [ $swappercent -ge 80 ] && swapcolor="$warning"
+ [ ! -z "swappercent" ] && [ $swappercent -ge 90 ] && swapcolor="$critical"
+ set color=1
 }
 
-workdir=$(pwd)
+workdir="$HOME"
 system=$(uname -nro)
 sysdistro=$(lsb_release -a 2>/dev/null | grep "Description" | grep -v "LSB" | awk '{ print substr($0, index($0,$2)) }')
 sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
@@ -48,7 +45,7 @@ sysramtype=$(grep "Type: DDR" "$workdir/dmimemorytmp" | cut -d ":" -f2 | head -1
 sysramspeed=$(grep "MT/s" "$workdir/dmimemorytmp" | cut -d ":" -f2 | head -1 | awk '$1=$1')
 rm "$workdir/dmimemorytmp"
 free -g > "$workdir/tmpram"
-sysramfree=$(grep "Mem:" "$workdir/tmpram" | awk '{print $4}')
+sysramfree=$(grep "Mem:" "$workdir/tmpram" | awk '{print $7}')
 sysramtotal=$(grep "Mem:" "$workdir/tmpram" | awk '{print $2}')
 sysswapfree=$(grep "Swap:" "$workdir/tmpram" | awk '{print $4}')
 sysswaptotal=$(grep "Swap:" "$workdir/tmpram" | awk '{print $2}')
@@ -66,14 +63,39 @@ syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$
 syscpuload=$(printf '%.2f' "$syscpuload")
 syscpuload="${syscpuload}%"
 sysgpu=$(GPU=$(lspci | grep VGA | cut -d ":" -f3); RAM=$(cardid=$(lspci | grep VGA | cut -d " " -f1); lspci -v -s "$cardid" | grep " prefetchable" | cut -d "=" -f2); echo $GPU $RAM)
-sysrootdisk=$(lsblk -io KNAME,MOUNTPOINT | grep -w "/" | awk '{print $1}')
-sysrootdisk="${sysrootdisk%?}"
-sysrootdisk=$(lsblk -io KNAME,MODEL,MOUNTPOINT | grep -w "$sysrootdisk" | awk '{ print substr($0, index($0,$2)) }' | awk '$1=$1')
-sysdisktotal=$(df -h | grep -w "/" | awk '{print $2}')
-sysdiskfree=$(df -h | grep -w "/" | awk '{print $4}')
-sysnetworkinterface=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g')
-sysethrx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 4p | awk '{print $1}')
-sysethtx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 6p | awk '{print $1}')
+df -h > "$workdir/diskstmp"
+disk1="sd"
+disk2="sr"
+disk3="md"
+disk4="nvme"
+count=1
+while true; do
+ diskcount="disk${count}"
+ declare "dev${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | awk '{print $1}' | sed -n ${count}p)"
+ declare "diskmount${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | cut -d '%' -f 2 | sed -n ${count}p)"
+ declare "totalsize${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | awk '{print $2}' | sed -n ${count}p)"
+ declare "freespace${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | awk '{print $4}' | sed -n ${count}p)"
+ let count=count+1
+ [ $count -ge 20 ] && disks=$count && break
+done
+rm "$workdir/diskstmp"
+#sysrootdisk=$(lsblk -io KNAME,MOUNTPOINT | grep -w "/" | awk '{print $1}')
+#sysrootdisk="${sysrootdisk%?}"
+#sysrootdisk=$(lsblk -io KNAME,MODEL,MOUNTPOINT | grep -w "$sysrootdisk" | awk '{ print substr($0, index($0,$2)) }' | awk '$1=$1')
+#sysdisktotal=$(df -h | grep -w "/" | awk '{print $2}')
+#sysdiskfree=$(df -h | grep -w "/" | awk '{print $4}')
+sysnetworkinterfaces=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g')
+sysnetworkinterfacescount=$(echo "$sysnetworkinterfaces" | wc -l)
+ethcount=1
+while [ $ethcount -le $sysnetworkinterfacescount ]; do
+ sysnetworkinterface=$(echo "$sysnetworkinterfaces" | sed -n ${ethcount}p)
+ eval sysethinterface${ethcount}="$sysnetworkinterface"
+ eval sysethrx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 4p | awk '{print $1}')
+ eval sysethtx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 6p | awk '{print $1}')
+ let ethcount=ethcount+1
+done
+#sysethrx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 4p | awk '{print $1}')
+#sysethtx=$(ip -h -s link show dev "$sysnetworkinterface" | sed -n 6p | awk '{print $1}')
 
 [ "$1" = "--color" ] && color_func
 
@@ -97,7 +119,28 @@ swapsize="GB"
 [ "$sysswapfree" -le 0 ] && sysswapfree=$(free -m | grep "Swap:" | awk '{print $4}') && swapsize="MB" && swapcolor="$critical"
 echo $color "[${titlecolor}FREE RAM${colorend}]: ${ramcolor}${sysramfree}${ramsize}${colorend} - [${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}GB${colorend}"
 [ ! -z "$sysswapfree" ] && echo $color "[${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${swapsize}${colorend} - [${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}GB${colorend}"
-echo $color "[${titlecolor}ROOT DISK${colorend}]: ${neutral}${sysrootdisk}${colorend} - [${titlecolor}FREE DISKSPACE${colorend}]: ${diskcolor}${sysdiskfree}B${colorend} - [${titlecolor}TOTAL DISKSPACE${colorend}]: ${neutral}${sysdisktotal}B${colorend}"
-echo $color "[${titlecolor}NETWORK RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}NETWORK SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
+#echo $color "[${titlecolor}ROOT DISK${colorend}]: ${neutral}${sysrootdisk}${colorend} - [${titlecolor}FREE DISKSPACE${colorend}]: ${diskcolor}${sysdiskfree}B${colorend} - [${titlecolor}TOTAL DISKSPACE${colorend}]: ${neutral}${sysdisktotal}B${colorend}"
+i=1
+while [ $i -le $disks ]; do
+ dev="dev${i}"
+ diskmount="diskmount${i}"
+ totalsize="totalsize${i}"
+ freespace="freespace${i}"
+ [ ! -z "$color" ] &&  [ ! -z "${!totalsize}" ] && diskpercent=$(( ($(printf '%.0f\n' "${!totalsize: : -1}") - $(printf '%.0f\n' "${!freespace: : -1}" )) * 100 / $(printf '%.0f\n' "${!totalsize: : -1}") ))
+ [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
+ [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
+ [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*loop*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ let i=i+1
+done
+i=1
+while [ $i -le $ethcount ]; do
+ eval sysethrx=\$"sysethrx${i}"
+ eval sysethtx=\$"sysethtx${i}"
+ eval sysethinterface=\$"sysethinterface${i}"
+ #sysethinterface=$(echo "${sysethinterface##*{}}")
+ [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} - [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
+ let i=i+1
+done
 echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
