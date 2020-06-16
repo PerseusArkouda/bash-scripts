@@ -1,6 +1,10 @@
-/mnt/*
-/proc/*
-/dev/*
-/media/*
-/sys/*
-/lost+found/*
+"/mnt/*"
+"/proc/*"
+"/dev/*"
+"/media/*"
+"/sys/*"
+"/lost+found/*"
+"/run/*"
+"/var/cache/*"
+"/tmp/*"
+"/usr/tmp/*"
