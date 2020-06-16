@@ -40,7 +40,7 @@ for i in `/bin/lsblk -o NAME | grep "sd" | grep '^[a-z]*$'`; do
    echo
    echo "Errors found for Disk $count on /dev/${i}:"
    echo "$errors"
-  elif [ ! -z "$1" ] && [ "$1" == "-showerrors" ] && [ -z "$errors" ]; then
+  elif [ ! -z "$1" ] && [ "$1" == "--showerrors" ] && [ -z "$errors" ]; then
    echo
    echo "No errors found for Disk $count on /dev/${i}."
   fi
