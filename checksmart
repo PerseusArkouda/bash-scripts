@@ -3,7 +3,7 @@ echo "---------------------------------"
 echo " Quick SMART test for SATA disks."
 echo " By Perseus                      "
 echo "---------------------------------"
-echo "Available parameters: -showerrors"
+echo "Available parameters: --showerrors"
 echo
 echo
 

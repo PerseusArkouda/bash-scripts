@@ -61,9 +61,9 @@ function start_backup {
  errorlevel="$?"
  [ -f "$lockfile" ] && rm "$lockfile"
  if [ $errorlevel -eq 0 ]; then
-  echo "Backup of Plan${count} has been finished." && echo "$(date) - Backup of Plan${count} finished." >> ${workdir}/${me}.log
+  echo "Backup of Plan${count} has been finished." && echo "$(date) - Backup of Plan${count} finished." >> "${workdir}/${me}.log"
  else
-  echo "Error. Backup of Plan${count} failed!" && echo "$(date) - Backup of Plan${count} failed!" >> ${workdir}/${me}.log
+  echo "Error. Backup of Plan${count} failed!" && echo "$(date) - Backup of Plan${count} failed!" >> "${workdir}/${me}.log"
   exit 1
  fi
  sleep 5

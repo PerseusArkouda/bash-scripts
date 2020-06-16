@@ -4,7 +4,7 @@
 # Can detect multiple CPUs / Disks / Network Interfaces
 # Special thanks to Phorce1 for suggestions and testing
 # Add --color parameter for colored output.
-# Put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --color"
+# You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --color"
 
 function cpu_count {
  sedline=1
@@ -33,7 +33,7 @@ function color_func {
 }
 
 workdir="$HOME"
-system=$(uname -nro)
+system=$(uname -snrp)
 sysdistro=$(lsb_release -a 2>/dev/null | grep "Description" | grep -v "LSB" | awk '{ print substr($0, index($0,$2)) }')
 sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
 sysmanufacturer=$(grep "Manufacturer:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
