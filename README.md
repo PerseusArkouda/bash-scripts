@@ -8,6 +8,8 @@ rssark - Script to fetch RSS from ARK Survival Evolved's official site and sends
 
 tweet2 - Script to fetch tweets from specified Twitter users and sends them to Discord through a webhook.
 
+memuse = Script to display the memory usage of each running ARK Server.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 checksmart - Script to check disks with SMART capability for health status.
