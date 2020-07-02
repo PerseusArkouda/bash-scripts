@@ -10,6 +10,8 @@ arg="$1"
 # Disable benchmark with 0 value if you face any problems with it.
 benchmark="1"
 
+sudo echo > /dev/null
+
 function main_func {
 
 function cpu_count {
