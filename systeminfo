@@ -5,6 +5,10 @@
 # Special thanks to Phorce1 for suggestions and testing
 # Add --color parameter for colored output.
 # You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --color"
+workdir="$HOME"
+arg="$1"
+
+function main_func {
 
 function cpu_count {
  sedline=1
@@ -96,7 +100,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  let ethcount=ethcount+1
 done
 
-[ "$1" = "--color" ] && color_func
+[ "$arg" = "--color" ] && color_func
 
 echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
 echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
@@ -141,3 +145,11 @@ while [ $i -le $ethcount ]; do
 done
 echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
+}
+
+{ time -p main_func ; } 2> "$workdir/benchmarktmp"
+benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
+benchuser=$(grep "user" "$workdir/benchmarktmp" | cut -d " " -f 2)
+benchsys=$(grep "sys" "$workdir/benchmarktmp" | cut -d " " -f 2)
+echo $color "[${titlecolor}BENCHMARK EXEC TIME(SEC)${colorend}]: ${neutral}${benchreal}${colorend} - [${titlecolor}EXEC USER TIME${colorend}]: ${neutral}${benchuser}${colorend} - [${titlecolor}EXEC SYS TIME${colorend}]: ${neutral}${benchsys}${colorend}"
+rm "$workdir/benchmarktmp"
