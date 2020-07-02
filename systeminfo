@@ -7,6 +7,8 @@
 # You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --color"
 workdir="$HOME"
 arg="$1"
+# Disable benchmark with 0 value if you face any problems with it.
+benchmark="1"
 
 function main_func {
 
@@ -147,6 +149,7 @@ echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}$
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
+[ "$benchmark" = "0" ] && main_func && exit 0
 { time -p main_func ; } 2> "$workdir/benchmarktmp"
 benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
 benchuser=$(grep "user" "$workdir/benchmarktmp" | cut -d " " -f 2)
