@@ -72,8 +72,7 @@ sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
 sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
 sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
 rm "$workdir/tmpgpu"
-sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)")
-[ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}GPU VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
+sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')
 df -h > "$workdir/diskstmp"
 disk1="sd"
 disk2="sr"
@@ -115,6 +114,7 @@ while read line ; do
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
 echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}"
+[ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
 echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
 echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
 ramsize="GB"
