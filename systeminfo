@@ -36,7 +36,6 @@ function color_func {
  set color=1
 }
 
-workdir="$HOME"
 system=$(uname -snrp)
 sysdistro=$(lsb_release -a 2>/dev/null | grep "Description" | grep -v "LSB" | awk '{ print substr($0, index($0,$2)) }')
 sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
