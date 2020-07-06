@@ -4,6 +4,8 @@ echo "	Steam Mod Downloader"
 echo "=========================="
 echo "By Perseus"
 echo
+# Accepts mod id as parameter. Will ask if not given.
+# Will resume if download fails until it succeeds.
 
 # Change serverpath if different than your /home/user path.
 serverpath="$HOME"
