@@ -82,6 +82,7 @@ disk1="sd"
 disk2="sr"
 disk3="md"
 disk4="nvme"
+disk5="vd"
 count=1
 while true; do
  diskcount="disk${count}"
