@@ -1,0 +1,40 @@
+#!/bin/bash
+echo "=========================="
+echo "	Steam Mod Downloader"
+echo "=========================="
+echo "By Perseus"
+echo
+
+# Change serverpath if different than your /home/user path.
+serverpath="$HOME"
+# Set appid of the game. 346110 for Ark Survival Evolved.
+appid=346110
+
+[ ! -d "${serverpath}/.steam" ] && echo "ERROR: ${serverpath}/.steam directory not found. Exiting." && \
+ echo "Visit https://ark.gamepedia.com/Dedicated_Server_Setup for more info on installing steam." && exit 1
+[ ! -f "${serverpath}/steamcmd" ] && echo "ERROR: ${serverpath}/steamcmd binary not found. Exiting." && \
+ echo "Visit https://ark.gamepedia.com/Dedicated_Server_Setup for more info on installing steamcmd." && exit 1
+
+modid="$1"
+[ -z "$modid" ] && read -rp "Enter Steam Mod ID:" "modid"
+
+function get_mod {
+ "${serverpath}/steamcmd +login anonymous +workshop_download_item $appid $modid validate +exit"
+}
+
+echo "Downloading $modid for appid $appid..."
+
+false
+get_mod
+
+while [ "$?" -ne 0 ]; do
+ echo "Something went wrong downloading the modid $modid. Trying again... (Press ctrl+c to cancel)"
+ false
+ get_mod
+done
+
+[ ! -d "${serverpath}/.steam/SteamApps/workshop/content/${appid}/${modid}" ] && echo "ERROR: Modid $modid wasn't downloaded successfully. Try again." && exit 1
+
+echo "Mod found successfully downloaded."
+echo
+echo "Script finished."
