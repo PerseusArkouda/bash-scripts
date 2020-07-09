@@ -73,7 +73,7 @@ syscpuload=$(printf '%.2f' "$syscpuload")
 syscpuload="${syscpuload}%"
 lspci -k | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
 sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
-sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
+sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
 sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
 rm "$workdir/tmpgpu"
 sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')

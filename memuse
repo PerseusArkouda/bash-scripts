@@ -1,12 +1,13 @@
 #!/bin/bash
 # Script to display the memory usage of each running ARK Server.
 # Based on Phorce1's memuse.sh
+# Add the following line to your ~/.bashrc to sort by highest memory usage first: alias memuse='memuse | sort -n -k5 -r'
 
 workdir=$(pwd)
 
 ps -eo size,rss,command --sort -size | grep "ShooterGame" | grep -v "color=auto" | tr ? '\n' > "${workdir}/memtmp"
 
-mem=$(grep -i "ShooterGameServer" "${workdir}/memtmp" | awk '{print "VIRT:",$1=int(10*$1/1024/1024)/10"GB","- RES:",$2=int(10*$2/1024/1024)/10"GB"}' | cut -d "?" -f 1)
+mem=$(grep -i "ShooterGameServer" "${workdir}/memtmp" | awk '{print v"[VIRT]:",$1=int(10*$1/1024/1024)/10"GB","- [RES]:",$2=int(10*$2/1024/1024)/10"GB"}' | cut -d "?" -f 1)
 name=$(grep -i "SessionName" "${workdir}/memtmp" | cut -d "=" -f 2)
 
 count=1
