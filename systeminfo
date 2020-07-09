@@ -108,19 +108,19 @@ done
 [ "$arg" = "--color" ] && color_func
 
 echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
-echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
-echo $color "[${titlecolor}DISTRO${colorend}]: ${neutral}${sysdistro}${colorend}"
-echo $color "[${titlecolor}MODEL${colorend}]: ${neutral}${sysmanufacturer} ${sysmodel}${colorend} - [${titlecolor}CHIPSET${colorend}]: ${neutral}${syschipset}${colorend}"
+[ ! -z "$system" ] && echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
+[ ! -z "$sysdistro" ] && echo $color "[${titlecolor}DISTRO${colorend}]: ${neutral}${sysdistro}${colorend}"
+[ ! -z "$sysmanufacturer" ] && echo $color "[${titlecolor}MODEL${colorend}]: ${neutral}${sysmanufacturer} ${sysmodel}${colorend} - [${titlecolor}CHIPSET${colorend}]: ${neutral}${syschipset}${colorend}"
 i=0
 while read line ; do
  echo $color "[${titlecolor}CPU${i}${colorend}]: ${neutral}${line}${colorend}"
  let i=i+1
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
-echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}"
+[ ! -z "$syscpucores" ] && echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
-echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
-echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
+[ ! -z "$sysgpu" ] && echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
+[ ! -z "$sysramtype" ] && echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
 ramsize="GB"
 swapsize="GB"
 [ "$sysramfree" -le 0 ] && sysramfree=$(free -m | grep "Mem:" | awk '{print $4}') && ramsize="MB" && ramcolor="$critical"
