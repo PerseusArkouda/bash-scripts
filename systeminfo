@@ -3,12 +3,17 @@
 # Written by Perseus
 # Can detect multiple CPUs / Disks / Network Interfaces
 # Special thanks to Phorce1 for suggestions and testing
-# Add --color parameter for colored output.
-# You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --color"
+# Add --nocolor parameter to disable colored output.
+# Add --nobenchmark parameter to disable benchmark.
+# You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --nocolor --nobenchmark"
+# Now supports installed packages count for Arch, Manjaro, Ubuntu and Mint.
 workdir="$HOME"
-arg="$1"
-# Disable benchmark with 0 value if you face any problems with it.
-benchmark="1"
+
+coloroutput=1
+benchmark=1
+args="$*"
+[ -z "${args##*nocolor*}" ] && coloroutput=0
+[ -z "${args##*nobenchmark*}" ] && benchmark=0
 
 sudo echo > /dev/null
 
@@ -126,7 +131,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  let ethcount=ethcount+1
 done
 
-[ "$arg" = "--color" ] && color_func
+[ "$coloroutput" = "1" ] && color_func
 
 echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
 [ ! -z "$system" ] && echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
