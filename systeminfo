@@ -41,10 +41,9 @@ function color_func {
 }
 
 system=$(uname -snrp)
-#sysdistro=$(lsb_release -a 2>/dev/null | grep "Description" | grep -v "LSB" | awk '{ print substr($0, index($0,$2)) }')
-sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '"' -f 2)
-[ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '"' -f 2)
-sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '"' -f 2)
+sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
+[ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
+sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
 sysmanufacturer=$(grep "Manufacturer:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
 sysmodel=$(grep "Product Name:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
