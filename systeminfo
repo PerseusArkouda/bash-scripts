@@ -45,8 +45,10 @@ system=$(echo "${system/unknown/}" | awk '$1=$1')
 sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
-[ -z "${sysdistro##*Arch*}" ] || [ -z "${sysdistro##*Manjaro*}" ] && sysdistropackages=$(pacman -Q | wc -l)
-[ -z "${sysdistro##*Ubuntu*}" ] || [ -z "${sysdistro##*Mint*}" ] && sysdistropackages=$(apt list --installed 2> /dev/null | wc -l)
+[ -z "${sysdistro##*Arch*}" ] || [ -z "${sysdistro##*Manjaro*}" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)"
+[ -z "${sysdistro##*Ubuntu*}" ] || [ -z "${sysdistro##*Mint*}" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)"
+[ -f "/usr/bin/snap" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}, $sysdistrosnap (snap)"
+[ -f "/usr/bin/flatpak" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}, $sysdistroflatpak (flatpak)"
 sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
 sysmanufacturer=$(grep "Manufacturer:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
 sysmodel=$(grep "Product Name:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
