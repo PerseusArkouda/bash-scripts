@@ -6,7 +6,7 @@
 # Add --nocolor parameter to disable colored output.
 # Add --nobenchmark parameter to disable benchmark.
 # You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --nocolor --nobenchmark"
-# Now supports installed packages count for Arch, Manjaro, Ubuntu and Mint.
+# Now supports installed packages count for distributions with apt, pacman, snap and flatpak.
 workdir="$HOME"
 
 coloroutput=1
@@ -60,10 +60,11 @@ system=$(echo "${system/unknown/}" | awk '$1=$1')
 sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
-[ -z "${sysdistro##*Arch*}" ] || [ -z "${sysdistro##*Manjaro*}" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)"
-[ -z "${sysdistro##*Ubuntu*}" ] || [ -z "${sysdistro##*Mint*}" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)"
-[ -f "/usr/bin/snap" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}, $sysdistrosnap (snap)"
-[ -f "/usr/bin/flatpak" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}, $sysdistroflatpak (flatpak)"
+[ -f "/usr/bin/pacman" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
+[ -f "/usr/bin/apt" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
+[ "$pkgmgr" = "1" ] && comma1=", "
+[ -f "/usr/bin/snap" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
+[ -f "/usr/bin/flatpak" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma2}${sysdistroflatpak} (flatpak)"
 sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
 sysmanufacturer=$(grep "Manufacturer:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
 sysmodel=$(grep "Product Name:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
