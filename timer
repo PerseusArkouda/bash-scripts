@@ -1,0 +1,10 @@
+#!/bin/bash
+prompt=$(sudo -nv 2>&1)
+if [ $? -eq 0 ]; then
+ sudo echo > /dev/null
+elif echo $prompt | grep -q '^sudo:'; then
+ echo "systeminfo requires you to enter your sudo password for some commands to work properly (dmidecode)."
+ sudo echo > /dev/null
+else
+echo "systeminfo requires you to be a sudo user to work properly. Exiting..." && exit 1
+fi

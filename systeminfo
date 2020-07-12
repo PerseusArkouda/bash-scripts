@@ -7,6 +7,7 @@
 # Add --nobenchmark parameter to disable benchmark.
 # You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --nocolor --nobenchmark"
 # Now supports installed packages count for distributions with apt, pacman, snap and flatpak.
+
 workdir="$HOME"
 
 coloroutput=1
@@ -14,8 +15,6 @@ benchmark=1
 args="$*"
 [ -z "${args##*nocolor*}" ] && coloroutput=0
 [ -z "${args##*nobenchmark*}" ] && benchmark=0
-
-sudo echo > /dev/null
 
 function main_func {
 
@@ -134,6 +133,7 @@ done
 
 [ "$coloroutput" = "1" ] && color_func
 
+printf "\r\033[K"
 echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
 [ ! -z "$system" ] && echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
 [ ! -z "$sysdistropackages" ] && sysdistropackages=" - [${titlecolor}INSTALLED PKGS${colorend}]: ${neutral}${sysdistropackages}${colorend}"
@@ -176,10 +176,22 @@ echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}$
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
-[ "$benchmark" = "0" ] && main_func && exit 0
-{ time -p main_func ; } 2> "$workdir/benchmarktmp"
-benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
-benchuser=$(grep "user" "$workdir/benchmarktmp" | cut -d " " -f 2)
-benchsys=$(grep "sys" "$workdir/benchmarktmp" | cut -d " " -f 2)
-echo $color "[${titlecolor}BENCHMARK EXEC TIME(SEC)${colorend}]: ${neutral}${benchreal}${colorend} - [${titlecolor}EXEC USER TIME${colorend}]: ${neutral}${benchuser}${colorend} - [${titlecolor}EXEC SYS TIME${colorend}]: ${neutral}${benchsys}${colorend}"
-rm "$workdir/benchmarktmp"
+prompt=$(sudo -nv 2>&1)
+if [ $? -eq 0 ]; then
+ sudo echo > /dev/null
+elif echo $prompt | grep -q '^sudo:'; then
+ printf "It is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
+else
+ echo "It is required to be a sudo user for the script to work properly. Exiting..." && exit 1
+fi
+
+for i in main_func; do
+ printf "\r\033[KCollecting system info data..."
+ [ "$benchmark" = "0" ] && main_func && exit 0
+ { time -p main_func ; } 2> "$workdir/benchmarktmp"
+ benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
+ benchuser=$(grep "user" "$workdir/benchmarktmp" | cut -d " " -f 2)
+ benchsys=$(grep "sys" "$workdir/benchmarktmp" | cut -d " " -f 2)
+ echo $color "[${titlecolor}BENCHMARK EXEC TIME(SEC)${colorend}]: ${neutral}${benchreal}${colorend} - [${titlecolor}EXEC USER TIME${colorend}]: ${neutral}${benchuser}${colorend} - [${titlecolor}EXEC SYS TIME${colorend}]: ${neutral}${benchsys}${colorend}"
+ rm "$workdir/benchmarktmp"
+done
