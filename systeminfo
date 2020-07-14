@@ -6,15 +6,15 @@
 # Add --nocolor parameter to disable colored output.
 # Add --nobenchmark parameter to disable benchmark.
 # You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --nocolor --nobenchmark"
-# Now supports installed packages count for distributions with apt, pacman, snap and flatpak.
+# Now supports installed packages count for distributions with apt, pacman, yum, snap and flatpak.
 
 workdir="$HOME"
 
 coloroutput=1
 benchmark=1
 args="$*"
-[ -z "${args##*nocolor*}" ] && coloroutput=0
-[ -z "${args##*nobenchmark*}" ] && benchmark=0
+grep -q nocolor <<<"$args" && coloroutput=0
+grep -q nobenchmark <<<"$args" && benchmark=0
 
 function main_func {
 
@@ -61,6 +61,7 @@ sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ -f "/usr/bin/pacman" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
 [ -f "/usr/bin/apt" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
+[ ! -f "/usr/bin/pacman" ] && [ -f "/usr/bin/yum" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
 [ "$pkgmgr" = "1" ] && comma1=", "
 [ -f "/usr/bin/snap" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
 [ -f "/usr/bin/flatpak" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma2}${sysdistroflatpak} (flatpak)"
@@ -177,13 +178,8 @@ echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
 prompt=$(sudo -nv 2>&1)
-if [ $? -eq 0 ]; then
- sudo echo > /dev/null
-elif echo $prompt | grep -q '^sudo:'; then
- printf "It is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
-else
- echo "It is required to be a sudo user for the script to work properly. Exiting..." && exit 1
-fi
+[ $? -eq 0 ] && sudo echo > /dev/null
+echo $prompt | grep -q '^sudo:' && printf "It is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
 
 for i in main_func; do
  printf "\r\033[KCollecting system info data..."
