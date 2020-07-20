@@ -177,11 +177,10 @@ echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}$
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
-prompt=$(sudo -nv 2>&1)
-[ $? -eq 0 ] && sudo echo > /dev/null
-echo $prompt | grep -q '^sudo:' && printf "\r\033[KIt is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
-
 for i in main_func; do
+ prompt=$(sudo -nv 2>&1)
+ [ $? -eq 0 ] && sudo echo > /dev/null
+ echo $prompt | grep -q '^sudo:' && printf "\r\033[KIt is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
  printf "\r\033[KCollecting system info data..."
  [ "$benchmark" = "0" ] && main_func && exit 0
  { time -p main_func ; } 2> "$workdir/benchmarktmp"
