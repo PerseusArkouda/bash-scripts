@@ -179,7 +179,7 @@ echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 
 prompt=$(sudo -nv 2>&1)
 [ $? -eq 0 ] && sudo echo > /dev/null
-echo $prompt | grep -q '^sudo:' && printf "It is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
+echo $prompt | grep -q '^sudo:' && printf "\r\033[KIt is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
 
 for i in main_func; do
  printf "\r\033[KCollecting system info data..."
