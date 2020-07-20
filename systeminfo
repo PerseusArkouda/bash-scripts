@@ -133,8 +133,8 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
 done
 
 [ "$coloroutput" = "1" ] && color_func
-
 printf "\r\033[K"
+
 echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
 [ ! -z "$system" ] && echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
 [ ! -z "$sysdistropackages" ] && sysdistropackages=" - [${titlecolor}INSTALLED PKGS${colorend}]: ${neutral}${sysdistropackages}${colorend}"
@@ -180,7 +180,7 @@ echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 for i in main_func; do
  prompt=$(sudo -nv 2>&1)
  [ $? -eq 0 ] && sudo echo > /dev/null
- echo $prompt | grep -q '^sudo:' && printf "\r\033[KIt is required to enter your sudo password for some commands to work properly (dmidecode)." && sudo echo > /dev/null && printf "\r\033[K"
+ echo $prompt | grep -q '^sudo:' && printf "\r\033[KIt is required to enter your sudo password for some commands to work properly (dmidecode)." && sleep 3 && printf "\r\033[K" && sudo echo > /dev/null
  printf "\r\033[KCollecting system info data..."
  [ "$benchmark" = "0" ] && main_func && exit 0
  { time -p main_func ; } 2> "$workdir/benchmarktmp"
