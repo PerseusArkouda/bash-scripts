@@ -10,6 +10,9 @@
 
 workdir="$HOME"
 
+sysos=$(uname -s)
+[ "$sysos" = "Darwin" ] && echo "macOS not supported yet. Exiting..." && exit 1
+
 coloroutput=1
 benchmark=1
 args="$*"
