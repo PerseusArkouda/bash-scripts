@@ -68,27 +68,19 @@ sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 |
 [ "$pkgmgr" = "1" ] && comma1=", "
 [ -f "/usr/bin/snap" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
 [ -f "/usr/bin/flatpak" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma2}${sysdistroflatpak} (flatpak)"
-sudo -S dmidecode -t system > "$workdir/dmisystemtmp"
-sysmanufacturer=$(grep "Manufacturer:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
-sysmodel=$(grep "Product Name:" "$workdir/dmisystemtmp" | cut -d ":" -f 2 | awk '$1=$1')
-rm "$workdir/dmisystemtmp"
-syschipset=$(sudo -S dmidecode -t baseboard | grep "Product Name:" | cut -d ":" -f2 | awk '$1=$1')
+sysmanufacturer=$(cat /sys/devices/virtual/dmi/id/sys_vendor)
+sysmodel=$(cat /sys/devices/virtual/dmi/id/product_name)
+syschipset=$(cat /sys/devices/virtual/dmi/id/board_name)
 sysuptime=$(uptime -p)
 sysdate=$(date)
-sudo -S dmidecode -t memory > "$workdir/dmimemorytmp"
-sysramtype=$(grep "Type: DDR" "$workdir/dmimemorytmp" | cut -d ":" -f2 | head -1 | awk '$1=$1')
-sysramspeed=$(grep "MT/s" "$workdir/dmimemorytmp" | cut -d ":" -f2 | head -1 | awk '$1=$1')
-rm "$workdir/dmimemorytmp"
-free -b > "$workdir/tmpram"
-sysramfreeb=$(grep "Mem:" "$workdir/tmpram" | awk '{print $7}')
+sysramfreeb=$(free -b | grep "Mem" | awk '{print $4}')
 sysramfree=$(bytesToHuman "$sysramfreeb")
-sysramtotalb=$(grep "Mem:" "$workdir/tmpram" | awk '{print $2}')
+sysramtotalb=$(free -b | grep "Mem" | awk '{print $2}')
 sysramtotal=$(bytesToHuman "$sysramtotalb")
-sysswapfreeb=$(grep "Swap:" "$workdir/tmpram" | awk '{print $4}')
+sysswapfreeb=$(free -b | grep "Swap" | awk '{print $4}')
 sysswapfree=$(bytesToHuman "$sysswapfreeb")
-sysswaptotalb=$(grep "Swap:" "$workdir/tmpram" | awk '{print $2}')
+sysswaptotalb=$(free -b | grep "Mem" | awk '{print $2}')
 sysswaptotal=$(bytesToHuman "$sysswaptotalb")
-rm "$workdir/tmpram"
 cat /proc/cpuinfo > "$workdir/sysinfotmp"
 syscpuphysical=$(grep "physical id" /proc/cpuinfo | awk '{print $4}')
 count=0
@@ -152,7 +144,8 @@ rm $workdir/tmpcpu
 [ ! -z "$syscpucores" ] && echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
 [ ! -z "$sysgpu" ] && echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
-[ ! -z "$sysramtype" ] && echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
+# Looking for methods to get detailed RAM info without sudo or non core programs.
+#[ ! -z "$sysramtype" ] && echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
 echo $color "[${titlecolor}FREE RAM${colorend}]: ${ramcolor}${sysramfree}${colorend} - [${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}${colorend}"
 [ ! -z "$sysswapfree" ] && echo $color "[${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${colorend} - [${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}${colorend}"
 i=1
@@ -181,9 +174,6 @@ echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
 for i in main_func; do
- prompt=$(sudo -nv 2>&1)
- [ $? -eq 0 ] && sudo echo > /dev/null
- echo $prompt | grep -q '^sudo:' && printf "\r\033[KIt is required to enter your sudo password for some commands to work properly (dmidecode)." && sleep 3 && printf "\r\033[K" && sudo echo > /dev/null
  printf "\r\033[KCollecting system info data..."
  [ "$benchmark" = "0" ] && main_func && exit 0
  { time -p main_func ; } 2> "$workdir/benchmarktmp"
