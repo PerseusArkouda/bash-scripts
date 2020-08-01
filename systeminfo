@@ -130,6 +130,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  eval sysethtx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 6p | awk '{print $1}')
  let ethcount=ethcount+1
 done
+sysconnection=$(ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
 
 [ "$coloroutput" = "1" ] && color_func
 printf "\r\033[K"
@@ -173,6 +174,8 @@ while [ $i -le $ethcount ]; do
  [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} - [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
  let i=i+1
 done
+[ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
+echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend}"
 echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
