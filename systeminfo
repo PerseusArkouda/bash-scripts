@@ -70,14 +70,13 @@ printf "\r\033[KCollecting system info data... System OS"
 [ "$sysos2" != "Android" ] && [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" != "Android" ] && sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" = "Android" ] && [ ! -z "$(whereis termux-info | awk '{print $2}')" ] && termux-info | sed ':a;N;$!ba;s/:\n/: /g' > "$workdir/termux-info"
-[ -f "$workdir/termux-info" ] && sysdistrobuild=$(grep "Android version" "$workdir/termux-info" | cut -d ":" -f 2) || sysdistrobuild="Unknown"
+[ -f "$workdir/termux-info" ] && sysdistrobuild=$(grep "Android version" "$workdir/termux-info" | cut -d ":" -f 2)
 [ -f "$workdir/termux-info" ] && rm "$workdir/termux-info"
 printf "\r\033[KCollecting system info data... Installed Packages"
 [ ! -z "$(whereis pacman | awk '{print $2}')" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
 [ ! -z "$(whereis apt | awk '{print $2}')" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
 [ -z "$(whereis pacman | awk '{print $2}')" ] && [ ! -z "$(whereis yum | awk '{print $2}')" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
 [ "$pkgmgr" = "1" ] && comma1=", "
-echo hi
 [ ! -z "$(whereis snap | awk '{print $2}')" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
 [ ! -z "$(whereis flatpak | awk '{print $2}')" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma2}${sysdistroflatpak} (flatpak)"
 printf "\r\033[KCollecting system info data... Memory"
