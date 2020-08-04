@@ -63,7 +63,8 @@ system=$(echo "${system/unknown/}" | awk '$1=$1')
 sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
-[ "$sysos2" = "Android" ] && sysdistro="Android" && sysdistrobuild="Unknown"
+[ "$sysos2" = "Android" ] && sysdistro="Android" && [ ! -z "$(whereis termux-info | awk '{print $2}')" ] && termux-info > "$workdir/termux-info" && sed -i ':a;N;$!ba;s/:\n/: /g' "$workdir/termux-info"
+[ -f "$workdir/termux-info" ] && sysdistrobuild=$(grep "Android version" | cut -d ":" -f 2) || sysdistrobuild="Unknown"
 [ ! -z "$(whereis pacman | awk '{print $2}')" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
 [ ! -z "$(whereis apt | awk '{print $2}')" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
 [ -z "$(whereis pacman | awk '{print $2}')" ] && [ ! -z "$(whereis yum | awk '{print $2}')" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
@@ -73,6 +74,8 @@ sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 |
 sysmanufacturer=$(cat /sys/devices/virtual/dmi/id/sys_vendor)
 sysmodel=$(cat /sys/devices/virtual/dmi/id/product_name)
 syschipset=$(cat /sys/devices/virtual/dmi/id/board_name)
+[ "$sysos2" = "Android" ] && [ -f "$workdir/termux-info" ] && sysmanufacturer=$(grep "Device manufacturer" "$workdir/termux-info" | cut -d ":" -f 2) && sysmodel=$(grep "Device model" "$workdir/termux-info" | cut -d ":" -f 2) && syschipset="" || sysmanufacturer="" && sysmodel="" && syschipset=""
+[ -f "$workdir/termux-info" ] && rm "$workdir/termux-info"
 sysuptime=$(uptime -p)
 sysdate=$(date)
 sysramusedb=$(free -b | grep "Mem" | awk '{print $3}')
@@ -132,7 +135,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  eval sysethtx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 6p | awk '{print $1}')
  let ethcount=ethcount+1
 done
-sysconnection=$(ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
+sysconnection=$(timeout 3 ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
 
 [ "$coloroutput" = "1" ] && color_func
 printf "\r\033[K"
