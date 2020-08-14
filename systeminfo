@@ -68,7 +68,7 @@ sysdate=$(date)
 printf "\r\033[KCollecting system info data... System OS"
 [ "$sysos2" != "Android" ] && sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" != "Android" ] && [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
-[ "$sysos2" != "Android" ] && sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"') || sysdistrobuild="N/A"
+[ "$sysos2" != "Android" ] && sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"') && [ -z "$sysdistrobuild" ] && sysdistrobuild="N/A"
 [ "$sysos2" = "Android" ] && [ ! -z "$(whereis termux-info | awk '{print $2}')" ] && termux-info | sed ':a;N;$!ba;s/:\n/: /g' > "$workdir/termux-info"
 [ -f "$workdir/termux-info" ] && sysdistrobuild=$(grep "Android version" "$workdir/termux-info" | cut -d ":" -f 2)
 [ -f "$workdir/termux-info" ] && rm "$workdir/termux-info"
