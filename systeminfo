@@ -12,7 +12,9 @@ workdir="$HOME"
 
 sysos=$(uname -s)
 sysos2=$(uname --operating-system)
-[ "$sysos" = "Darwin" ] && echo "macOS not supported yet. Exiting..." && exit 1
+iswsl=$(uname -r | grep "microsoft")
+[ ! -z "$iswsl" ] && sysos2="Windows/WSL"
+[ "$sysos" = "Darwin" ] && echo "macOS not supported yet. Exiting." && exit 1
 
 coloroutput=1
 benchmark=1
@@ -58,21 +60,23 @@ function bytesToHuman {
     echo "$b$d${S[$s]}"
 }
 
-printf "\r\033[KCollecting system info data... System Generic"
+printf "\r\033[K["$sysos2"] Collecting system info data... System Generic"
 system=$(uname -snrm)
 system=$(echo "${system/unknown/}" | awk '$1=$1')
 sysuptime=$(uptime -p)
 sysdate=$(date)
 [ "$sysos2" != "Android" ] && dmiinfo="/sys/devices/virtual/dmi/id" && [ -d "$dmiinfo" ] && sysmanufacturer=$(cat "$dmiinfo/sys_vendor") && sysmodel=$(cat "$dmiinfo/product_name") && syschipset=$(cat "$dmiinfo/board_name")
 [ "$sysos2" = "Android" ] && [ -f "$workdir/termux-info" ] && sysmanufacturer=$(grep "Device manufacturer" "$workdir/termux-info" | cut -d ":" -f 2) && sysmodel=$(grep "Device model" "$workdir/termux-info" | cut -d ":" -f 2) && syschipset="" || sysmanufacturer="" && sysmodel="" && syschipset=""
-printf "\r\033[KCollecting system info data... System OS"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... System OS"
 [ "$sysos2" != "Android" ] && sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" != "Android" ] && [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" != "Android" ] && sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"') && [ -z "$sysdistrobuild" ] && sysdistrobuild="N/A"
 [ "$sysos2" = "Android" ] && [ ! -z "$(whereis termux-info | awk '{print $2}')" ] && termux-info | sed ':a;N;$!ba;s/:\n/: /g' > "$workdir/termux-info"
 [ -f "$workdir/termux-info" ] && sysdistrobuild=$(grep "Android version" "$workdir/termux-info" | cut -d ":" -f 2)
 [ -f "$workdir/termux-info" ] && rm "$workdir/termux-info"
-printf "\r\033[KCollecting system info data... Installed Packages"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... Installed Packages"
 [ ! -z "$(whereis pacman | awk '{print $2}')" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
 [ ! -z "$(whereis apt | awk '{print $2}')" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
 [ ! -z "$(whereis emerge | awk '{print $2}')" ] && sysdistropackages="$(qlist -I | wc -l) (emerge)" && pkgmgr=1
@@ -80,7 +84,8 @@ printf "\r\033[KCollecting system info data... Installed Packages"
 [ "$pkgmgr" = "1" ] && comma1=", "
 [ ! -z "$(whereis snap | awk '{print $2}')" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
 [ ! -z "$(whereis flatpak | awk '{print $2}')" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma2}${sysdistroflatpak} (flatpak)"
-printf "\r\033[KCollecting system info data... Memory"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... Memory"
 sysramusedb=$(free -b | grep "Mem" | awk '{print $3}')
 sysramused=$(bytesToHuman "$sysramusedb")
 sysramfreeb=$(free -b | grep "Mem" | awk '{print $7}')
@@ -93,7 +98,8 @@ sysswapfreeb=$(free -b | grep "Swap" | awk '{print $4}')
 sysswapfree=$(bytesToHuman "$sysswapfreeb")
 sysswaptotalb=$(free -b | grep "Mem" | awk '{print $2}')
 sysswaptotal=$(bytesToHuman "$sysswaptotalb")
-printf "\r\033[KCollecting system info data... CPU"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... CPU"
 cat /proc/cpuinfo > "$workdir/sysinfotmp"
 syscpuphysical=$(grep "physical id" /proc/cpuinfo | awk '{print $4}')
 count=0
@@ -106,14 +112,16 @@ rm "$workdir/sysinfotmp"
 syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
 syscpuload=$(printf '%.2f' "$syscpuload")
 syscpuload="${syscpuload}%"
-printf "\r\033[KCollecting system info data... GPU"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... GPU"
 lspci -k | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
 sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
 sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
 sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
 rm "$workdir/tmpgpu"
 sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')
-printf "\r\033[KCollecting system info data... Disks"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... Disks"
 df -h > "$workdir/diskstmp"
 disk1="sd"
 disk2="sr"
@@ -131,7 +139,8 @@ while true; do
  [ $count -ge 20 ] && disks=$count && break
 done
 rm "$workdir/diskstmp"
-printf "\r\033[KCollecting system info data... Network"
+
+printf "\r\033[K["$sysos2"] Collecting system info data... Network"
 sysnetworkinterfaces=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g')
 sysnetworkinterfacescount=$(echo "$sysnetworkinterfaces" | wc -l)
 ethcount=1
@@ -142,7 +151,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  eval sysethtx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 6p | awk '{print $1}')
  let ethcount=ethcount+1
 done
-printf "\r\033[KCollecting system info data... Internet"
+printf "\r\033[K["$sysos2"] Collecting system info data... Internet"
 sysconnection=$(timeout 3 ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
 
 [ "$coloroutput" = "1" ] && color_func
@@ -194,7 +203,7 @@ echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
 for i in main_func; do
- printf "\r\033[KCollecting system info data..."
+ printf "\r\033[K["$sysos2"] Collecting system info data..."
  [ "$benchmark" = "0" ] && main_func && exit 0
  { time -p main_func ; } 2> "$workdir/benchmarktmp"
  benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
