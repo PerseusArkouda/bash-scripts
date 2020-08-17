@@ -1,0 +1,22 @@
+#!/bin/bash
+# Gets patch notes from ARK Survival Evolved's website and transmits them to Discord.
+# Requires html2text.
+# For automation add this line to your crontab: @hourly /full/path/to/arkpatchnotes >/dev/null 2>&1
+# Change the patchnotesdir if you don't want to use the current location
+patchnotesdir=$(pwd)
+patchnotesdir=$patchnotesdir/.arkpatchnotes
+# Set your Discord webhook's url. Example: url="https://discordapp.com/api/webhooks/619303176143434675/SWYs1WVT568bx6qaCyWOPcYhO7IK-7L1IWjvfdsEgkZtDMbAj2KRwVids23"
+discord_url=" "
+
+[ ! -d "$patchnotesdir" ] && mkdir "$patchnotesdir"
+
+pcpatchnotesurl=$(curl -s https://survivetheark.com/index.php?/forums/ | grep -Po 'href=[^"]+' | grep "pc-patch-notes" | grep -v "preview" | cut -d "'" -f 2 | sed "s/\&amp;do=getLastComment//g")
+lastpubdate=$(cat $patchnotesdir/lastpubdate.txt)
+newpubdate=$(curl -s "$pcpatchnotesurl" | html2text | /usr/bin/tr -cd '[:print:]\n' | grep "Version:" | cut -d "-" -f 2 | sed 's/_//g' | sed 's/\//ARKOUDA/g' | grep "ARKOUDA" | head -1)
+
+[ "$lastpubdate" == "$newpubdate" ] && exit 0
+
+echo "$newpubdate" > "$patchnotesdir/lastpubdate.txt"
+echo "ARK Update Released:" > "$patchnotesdir/arkpatchnotes.txt"
+echo "Link: $pcpatchnotesurl" >> "$patchnotesdir/arkpatchnotes.txt"
+curl --data-binary "content"="$(<$patchnotesdir/arkpatchnotes.txt)" "$discord_url"
