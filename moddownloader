@@ -30,12 +30,12 @@ false
 get_mod
 
 while [ "$?" -ne 0 ]; do
- echo "Something went wrong downloading the modid $modid. Trying again... (Press ctrl+c to cancel)"
+ echo "Something went wrong downloading the Mod ID $modid. Trying again... (Press ctrl+c to cancel)"
  false
  get_mod
 done
 
-[ ! -d "${serverpath}/.steam/SteamApps/workshop/content/${appid}/${modid}" ] && echo "ERROR: Modid $modid wasn't downloaded successfully. Try again." && exit 1
+[ ! -d "${serverpath}/.steam/SteamApps/workshop/content/${appid}/${modid}" ] && echo "ERROR: Mod ID $modid wasn't downloaded successfully. Try again." && exit 1
 
 echo "Mod found successfully downloaded."
 echo

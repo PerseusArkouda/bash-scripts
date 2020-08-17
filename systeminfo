@@ -63,7 +63,7 @@ system=$(uname -snrm)
 system=$(echo "${system/unknown/}" | awk '$1=$1')
 sysuptime=$(uptime -p)
 sysdate=$(date)
-[ "$sysos2" != "Android" ] && sysmanufacturer=$(cat /sys/devices/virtual/dmi/id/sys_vendor) && sysmodel=$(cat /sys/devices/virtual/dmi/id/product_name) && syschipset=$(cat /sys/devices/virtual/dmi/id/board_name)
+[ "$sysos2" != "Android" ] && dmiinfo="/sys/devices/virtual/dmi/id" && [ -d "$dmiinfo" ] && sysmanufacturer=$(cat "$dmiinfo/sys_vendor") && sysmodel=$(cat "$dmiinfo/product_name") && syschipset=$(cat "$dmiinfo/board_name")
 [ "$sysos2" = "Android" ] && [ -f "$workdir/termux-info" ] && sysmanufacturer=$(grep "Device manufacturer" "$workdir/termux-info" | cut -d ":" -f 2) && sysmodel=$(grep "Device model" "$workdir/termux-info" | cut -d ":" -f 2) && syschipset="" || sysmanufacturer="" && sysmodel="" && syschipset=""
 printf "\r\033[KCollecting system info data... System OS"
 [ "$sysos2" != "Android" ] && sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
