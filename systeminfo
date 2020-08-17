@@ -82,7 +82,7 @@ printf "\r\033[K["$sysos2"] Collecting system info data... Installed Packages"
 [ ! -z "$(whereis emerge | awk '{print $2}')" ] && sysdistropackages="$(qlist -I | wc -l) (emerge)" && pkgmgr=1
 [ -z "$(whereis pacman | awk '{print $2}')" ] && [ ! -z "$(whereis yum | awk '{print $2}')" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
 [ "$pkgmgr" = "1" ] && comma1=", "
-[ ! -z "$(whereis snap | awk '{print $2}')" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
+[ ! -z "$(whereis snap | awk '{print $2}')" ] && [ "$sysos2" != "Windows/WSL" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
 [ ! -z "$(whereis flatpak | awk '{print $2}')" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma2}${sysdistroflatpak} (flatpak)"
 
 printf "\r\033[K["$sysos2"] Collecting system info data... Memory"
