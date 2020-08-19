@@ -14,13 +14,15 @@ local_notes="disable"
 
 [ ! -d "$workdir" ] && mkdir "$workdir"
 
-currentversion=$(curl -s "https://ark.gamepedia.com/Patch_Notes" | grep "PC -" | cut -d "=" -f 3 | sed "s/[^0-9.]//g")
+currentversion=$(curl -s "https://ark.gamepedia.com/Patch_Notes" | grep "Steam and Epic" | cut -d "-" -f 3 | sed "s/[^0-9.]//g" | awk '$1=$1')
 lastversion=$(cat "$workdir/lastversion.txt")
 
+[ -z "$currentversion" ] && \
+ echo "ERROR: Something went wrong and couldn't get the current online version. Exiting." && exit 1
 [ "$lastversion" = "$currentversion" ] && exit 0
 
 [ "$local_notes" = "enable" ] && \
-curl -s "https://ark.gamepedia.com/$currentversion" | html2text | sed -n -e "/Released/,/PC_Patch/p" | grep -v "PC_Patch" > "$workdir/fullarkpatchnotes.txt"
+ curl -s "https://ark.gamepedia.com/$currentversion" | html2text | sed -n -e "/Released/,/PC_Patch/p" | grep -v "PC_Patch" > "$workdir/fullarkpatchnotes.txt"
 
 echo "$currentversion" > "$workdir/lastversion.txt"
 echo "ARK Update Released:" > "$workdir/arkpatchnotes.txt"
