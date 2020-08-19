@@ -21,3 +21,5 @@ checkforddos - Script to create a graph of incoming connection to help determine
 replacetext - Script to find and replace text on files on current dir and it's subdirs.
 
 baktool - Backup tool script to get local incremental backups by using rsync.
+
+HwOSD - Linux dynamic hardware information OSD.

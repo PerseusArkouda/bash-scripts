@@ -1,0 +1,55 @@
+#!/bin/bash
+# Linux dynamic hardware information OSD. Still in very early development.
+#requires notify-send.sh (allows easy pid replacement)
+#requires top (cpu utilization)
+#requires lm-sensors (cpu temp)
+#requires sysstat (disks activity)
+
+echo ; echo "\\\\ HwOSD \\\\by Perseus"
+
+function error {
+ echo ; echo "ERROR. HwOSD detected a problem and has to be stopped:" ; echo "${1}" ; exit 1
+}
+
+function chkinstalled {
+ [ -z "$(whereis "$1" | awk '{print $2}')" ] && error "$1 not found installed."
+}
+
+[ ! -f "$(pwd)/notify-send.sh" ] && error "notify-send.sh not found in current dir."
+chkinstalled "top"
+chkinstalled "sensors"
+chkinstalled "iostat"
+
+hwid="$(pwd)/.hwid"
+
+hwinfo="
+echo ‏‏‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎;
+echo :: CPU Info :: ;
+echo Model: \$(cat /proc/cpuinfo | grep 'model name' | head -1 | cut -d ':' -f 2 | awk '\$1=\$1') ;
+echo Frequency: \$(lscpu | grep 'CPU MHz' | awk '{print \$3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz) ;
+echo Temperature: \$(sensors | grep 'temp1' | awk '{print \$2}' | head -1 | tr -d '+') ;
+echo Utilization: \$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - \$1}' | tr -d '\n' ; echo %) ;
+echo ;
+echo :: RAM Info :: ;
+echo Used: \$(free -m | grep 'Mem' | awk '{print \$3}')MB, Total: \$(free -m | grep 'Mem' | awk '{print \$2}')MB ;
+echo ;
+echo :: GPU Info :: ;
+echo Model: \$(lspci -k | grep -A 2 -E 'VGA' | grep 'Subsystem' | cut -d ':' -f 2 | awk '\$1=\$1') ;
+echo Frequency: \$(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print \$2}') ;
+echo Temperature:‏‏‎ \$(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C) ;
+echo Utilization:‏ ‎\$(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %) ;
+echo ;
+echo :: Disks Info :: ;
+echo \$(iostat -h | grep 'tps' | awk '{print \$8,\$2,\$3,\$5,\$6}') ;
+echo \$(iostat -h | grep 'sdb' | awk '{print \$8,\$2,\$3,\$5,\$6}') ;
+echo ;
+"
+
+while true; do
+ sleep 1
+ [ -f "$hwid" ] && id=$(cat "$hwid")
+ "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -u critical -R "$hwid" -r "$id" -p "\\\\ HwOSD \\\\" "$(eval $hwinfo)" >/dev/null
+ [ -f "$(pwd)/.exit" ] && rm $(pwd)/.exit && pkill notify 2>/dev/null && break
+done
+
+echo ; echo "HwOSD has been exited."
