@@ -57,7 +57,7 @@ while true; do
  killpid "notify-send.sh"
  killpid "Notifications"
  [ -f "$hwid" ] && id=$(cat "$hwid")
- "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -R "$hwid" -r "$id" "\\\\ HwOSD \\\\" "$(eval $hwinfo)"
+ "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -u critical -R "$hwid" -r "$id" "\\\\ HwOSD \\\\" "$(eval $hwinfo)"
  [ -f "$(pwd)/.exit" ] && rm $(pwd)/.exit && pkill notify 2>/dev/null && break
  sleep 1
 done
