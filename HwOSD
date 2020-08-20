@@ -11,13 +11,16 @@
 show_cpuinfo="enable"
 show_raminfo="enable"
 show_gpuinfo="enable"
+# disable show_disksinfo to remove iostat dependecy
 show_disksinfo="enable"
 
 # enable/disable module's specific items
 # CPU
 show_cpumodel="enable"
 show_cpufrequency="enable"
+# disable show_cputemperature to remove sensors dependecy
 show_cputemperature="enable"
+# disable show_cpuutilization to remove top dependecy
 show_cpuutilization="enable"
 # RAM info has only a single output which can be enabled/disabled in show_raminfo variable
 # GPU
@@ -89,9 +92,9 @@ function disksinfo {
 
 # Error handling
 [ ! -f "$(pwd)/notify-send.sh" ] && error "notify-send.sh not found in current dir."
-chkinstalled "top"
-chkinstalled "sensors"
-chkinstalled "iostat"
+[ "$show_cpuutilization" = "enable" ] && chkinstalled "top"
+[ "$show_cputemperature" = "enable" ] && chkinstalled "sensors"
+[ "$show_disksinfo" = "enable" ] && chkinstalled "iostat"
 
 # Variables definitions
 hwid="$(pwd)/.hwid"
