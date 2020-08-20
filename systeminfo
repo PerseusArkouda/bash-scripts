@@ -14,7 +14,8 @@ sysos=$(uname -s)
 sysos2=$(uname --operating-system)
 iswsl=$(uname -r | grep "microsoft")
 [ ! -z "$iswsl" ] && sysos2="Windows/WSL"
-[ "$sysos" = "Darwin" ] && echo "macOS not supported yet. Exiting." && exit 1
+[ "$sysos" = "Darwin" ] && echo "Error: macOS not supported yet. Exiting." && exit 1
+[ -z "$(whereis top | awk '{print $2}')" ] && echo "Error: top not found installed. Install procps package and try again. Exiting." && exit 1
 
 coloroutput=1
 benchmark=1
@@ -109,9 +110,7 @@ syscpucores=$(grep "cpu cores" "$workdir/sysinfotmp" | awk '{print $4}')
 syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
 [ "$syscpucores" != "$syscpusiblings" ] && syscpucores=$(( $(echo "$syscpucores" | wc -l) / count )) || syscpucores=$(echo "$syscpucores" | wc -l)
 rm "$workdir/sysinfotmp"
-syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
-syscpuload=$(printf '%.2f' "$syscpuload")
-syscpuload="${syscpuload}%"
+syscpuload=$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)
 
 printf "\r\033[K["$sysos2"] Collecting system info data... GPU"
 lspci -k | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
