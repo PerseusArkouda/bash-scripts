@@ -1,12 +1,27 @@
 #!/bin/bash
-# Linux dynamic hardware information OSD. Still in very early development.
+# Linux dynamic hardware information OSD (Still in very early development)
+# Known issues: Sometimes requires multiple mouse clicks to exit.
 #requires notify-send.sh (allows easy pid replacement)
 #requires top (cpu utilization)
 #requires lm-sensors (cpu temp)
 #requires sysstat (disks activity)
 
-echo ; echo "\\\\ HwOSD \\\\by Perseus"
 
+# enable/disable information modules
+show_cpuinfo="enable"
+show_raminfo="enable"
+show_gpuinfo="enable"
+show_disksinfo="enable"
+
+
+
+
+# ------------- DO NOT EDIT BELOW IF YOU DON'T KNOW WHAT YOU ARE DOING --------------
+
+# Starting greeting console output
+echo ; echo "\\\ HwOSD \\\\" ; echo "by Perseus"
+
+# Error handling functions
 function error {
  echo ; echo "ERROR. HwOSD detected a problem and has to be stopped:" ; echo "${1}" ; exit 1
 }
@@ -23,50 +38,69 @@ function killpid {
  done
 }
 
-function diskfind {
- echo "$(iostat -h | grep 'tps' | awk '{print $8"‎‎‎‎‎‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ",$2"‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎",$3"‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎",$5"‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎",$6}')"
- for i in $(iostat | grep 'sd\|sr\|md\|vd\|nvme' | awk '{print $1}'); do
-  disks+=( "$(iostat -h | grep $i | awk '{print $8"\t\t",$2"\t\t‎",$3"\t\t",$5"\t\t",$6}')" )
- done
- printf '%s\n' "${disks[@]}"
+# Information modules functions
+function cpuinfo {
+  echo ":: CPU Info ::"
+  echo "Model: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f 2 | awk '$1=$1')"
+  echo "Frequency: $(lscpu | grep 'CPU MHz' | awk '{print $3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz)"
+  echo "Temperature: $(sensors | grep 'temp1' | awk '{print $2}' | head -1 | tr -d '+')"
+  echo "Utilization: $(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)"
+  echo
 }
 
+function raminfo {
+ echo ":: RAM Info ::"
+ echo "Used: $(free -m | grep 'Mem' | awk '{print $3}')MB, Total: $(free -m | grep 'Mem' | awk '{print $2}')MB"
+ echo
+}
+
+function gpuinfo {
+ echo ":: GPU Info ::"
+ echo "Model: $(lspci -k | grep -A 2 -E 'VGA' | grep 'Subsystem' | cut -d ':' -f 2 | awk '$1=$1')"
+ echo "Frequency: $(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print $2}')"
+ echo "Temperature: $(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C)"
+ echo "Utilization: $(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %)"
+ echo
+}
+
+function disksinfo {
+ echo ":: Disks Info ::"
+ echo "$(iostat -h | grep 'tps' | awk '{print $8"     ",$2"         ",$3"         ",$5"           ",$6}')"
+ for i in $(iostat | grep 'sd\|sr\|md\|vd\|nvme' | awk '{print $1}'); do
+  disks+=( "$(iostat -h | grep $i | awk '{print $8"\t\t",$2"\t\t",$3"\t\t",$5"\t\t",$6}')" )
+ done
+ printf '%s\n' "${disks[@]}"
+ echo
+}
+
+# Error handling
 [ ! -f "$(pwd)/notify-send.sh" ] && error "notify-send.sh not found in current dir."
 chkinstalled "top"
 chkinstalled "sensors"
 chkinstalled "iostat"
 
+# Variables definitions
 hwid="$(pwd)/.hwid"
 
 hwinfo="
 echo ‏‏‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎;
-echo :: CPU Info :: ;
-echo Model: \$(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f 2 | awk '\$1=\$1') ;
-echo Frequency: \$(lscpu | grep 'CPU MHz' | awk '{print \$3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz) ;
-echo Temperature: \$(sensors | grep 'temp1' | awk '{print \$2}' | head -1 | tr -d '+') ;
-echo Utilization: \$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - \$1}' | tr -d '\n' ; echo %) ;
-echo ;
-echo :: RAM Info :: ;
-echo Used: \$(free -m | grep 'Mem' | awk '{print \$3}')MB, Total: \$(free -m | grep 'Mem' | awk '{print \$2}')MB ;
-echo ;
-echo :: GPU Info :: ;
-echo Model: \$(lspci -k | grep -A 2 -E 'VGA' | grep 'Subsystem' | cut -d ':' -f 2 | awk '\$1=\$1') ;
-echo Frequency: \$(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print \$2}') ;
-echo Temperature:‏‏‎ \$(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C) ;
-echo Utilization:‏ ‎\$(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %) ;
-echo ;
-echo :: Disks Info :: ;
-diskfind ;
-echo ;
+[ '$show_cpuinfo' = 'enable' ] && cpuinfo ;
+[ '$show_raminfo' = 'enable' ] && raminfo ;
+[ '$show_gpuinfo' = 'enable' ] && gpuinfo ;
+[ '$show_disksinfo' = 'enable' ] && disksinfo ;
+echo '\n' ;
 "
 
+# Main program's execution section
+[ -f "$(pwd)/.exit" ] && rm $(pwd)/.exit
 while true; do
  killpid "notify-send.sh"
  killpid "Notifications"
- [ -f "$hwid" ] && id=$(cat "$hwid")
- "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -u critical -R "$hwid" -r "$id" "\\\\ HwOSD \\\\" "$(eval $hwinfo)"
  [ -f "$(pwd)/.exit" ] && rm $(pwd)/.exit && pkill notify 2>/dev/null && break
+ [ -f "$hwid" ] && id=$(cat "$hwid")
+ "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -u critical -R "$hwid" -r "$id" "\\\\\\\\ HwOSD \\\\\\\\" "$(eval $hwinfo)"
  sleep 1
 done
 
+# Successful's quit console output
 echo ; echo "HwOSD has been exited."
