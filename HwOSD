@@ -11,7 +11,21 @@
 show_cpuinfo="enable"
 show_raminfo="enable"
 show_gpuinfo="enable"
-show_disksinfo="enable"
+show_disksinfo="disable"
+
+# enable/disable module's specific items
+# CPU
+show_cpumodel="disable"
+show_cpufrequency="enable"
+show_cputemperature="enable"
+show_cpuutilization="enable"
+# RAM info has only a single output which can be enabled/disabled in show_raminfo variable
+# GPU
+show_gpumodel="disable"
+show_gpufrequency="enable"
+show_gputemperature="enable"
+show_gpuutilization="enable"
+# DISKS info currently can only be fully enabled or disabled by setting show_disksinfo variable
 
 
 
@@ -27,7 +41,7 @@ function error {
 }
 
 function chkinstalled {
- [ -z "$(whereis "$1" | awk '{print $2}')" ] && error "$1 not found installed."
+ [ -z "$(whereis $1 | awk '{print $2}')" ] && error "$1 not found installed."
 }
 
 function killpid {
@@ -41,10 +55,10 @@ function killpid {
 # Information modules functions
 function cpuinfo {
   echo ":: CPU Info ::"
-  echo "Model: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f 2 | awk '$1=$1')"
-  echo "Frequency: $(lscpu | grep 'CPU MHz' | awk '{print $3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz)"
-  echo "Temperature: $(sensors | grep 'temp1' | awk '{print $2}' | head -1 | tr -d '+')"
-  echo "Utilization: $(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)"
+  [ "$show_cpumodel" = "enable" ] && echo "Model: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f 2 | awk '$1=$1')"
+  [ "$show_cpufrequency" = "enable" ] && echo "Frequency: $(lscpu | grep 'CPU MHz' | awk '{print $3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz)"
+  [ "$show_cputemperature" = "enable" ] && echo "Temperature: $(sensors | grep 'temp1' | awk '{print $2}' | head -1 | tr -d '+')"
+  [ "$show_cpuutilization" = "enable" ] && echo "Utilization: $(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)"
   echo
 }
 
@@ -56,10 +70,10 @@ function raminfo {
 
 function gpuinfo {
  echo ":: GPU Info ::"
- echo "Model: $(lspci -k | grep -A 2 -E 'VGA' | grep 'Subsystem' | cut -d ':' -f 2 | awk '$1=$1')"
- echo "Frequency: $(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print $2}')"
- echo "Temperature: $(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C)"
- echo "Utilization: $(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %)"
+ [ "$show_gpumodel" = "enable" ] && echo "Model: $(lspci -k | grep -A 2 -E 'VGA' | grep 'Subsystem' | cut -d ':' -f 2 | awk '$1=$1')"
+ [ "$show_gpufrequency" = "enable" ] && echo "Frequency: $(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print $2}')"
+ [ "$show_gputemperature" = "enable" ] && echo "Temperature: $(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C)"
+ [ "$show_gpuutilization" = "enable" ] && echo "Utilization: $(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %)"
  echo
 }
 
