@@ -11,17 +11,17 @@
 show_cpuinfo="enable"
 show_raminfo="enable"
 show_gpuinfo="enable"
-show_disksinfo="disable"
+show_disksinfo="enable"
 
 # enable/disable module's specific items
 # CPU
-show_cpumodel="disable"
+show_cpumodel="enable"
 show_cpufrequency="enable"
 show_cputemperature="enable"
 show_cpuutilization="enable"
 # RAM info has only a single output which can be enabled/disabled in show_raminfo variable
 # GPU
-show_gpumodel="disable"
+show_gpumodel="enable"
 show_gpufrequency="enable"
 show_gputemperature="enable"
 show_gpuutilization="enable"
