@@ -23,6 +23,14 @@ function killpid {
  done
 }
 
+function diskfind {
+ echo "$(iostat -h | grep 'tps' | awk '{print $8"‎‎‎‎‎‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ",$2"‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎",$3"‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎",$5"‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎‏‏‎ ‎",$6}')"
+ for i in $(iostat | grep 'sd\|sr\|md\|vd\|nvme' | awk '{print $1}'); do
+  disks+=( "$(iostat -h | grep $i | awk '{print $8"\t\t",$2"\t\t‎",$3"\t\t",$5"\t\t",$6}')" )
+ done
+ printf '%s\n' "${disks[@]}"
+}
+
 [ ! -f "$(pwd)/notify-send.sh" ] && error "notify-send.sh not found in current dir."
 chkinstalled "top"
 chkinstalled "sensors"
@@ -48,8 +56,7 @@ echo Temperature:‏‏‎ \$(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon
 echo Utilization:‏ ‎\$(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %) ;
 echo ;
 echo :: Disks Info :: ;
-echo \$(iostat -h | grep 'tps' | awk '{print \$8,\$2,\$3,\$5,\$6}') ;
-echo \$(iostat -h | grep 'sdb' | awk '{print \$8,\$2,\$3,\$5,\$6}') ;
+diskfind ;
 echo ;
 "
 
