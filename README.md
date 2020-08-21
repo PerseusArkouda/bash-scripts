@@ -23,4 +23,4 @@ replacetext - Script to find and replace text on files on current dir and it's s
 baktool - Backup tool script to get local incremental backups by using rsync.
 
 HwOSD - Linux dynamic hardware information OSD.
-![HwOSD Screenshot](https://github.com/PerseusArkouda/bash_scripts/blob/master/HwOSD-Screenshot.png?raw=true)
+![HwOSD Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/HwOSD-Screenshot.png?raw=true)
