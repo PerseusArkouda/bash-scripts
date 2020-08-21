@@ -60,7 +60,7 @@ function cpuinfo {
   echo ":: CPU Info ::"
   [ "$show_cpumodel" = "enable" ] && echo "Model: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f 2 | awk '$1=$1')"
   [ "$show_cpufrequency" = "enable" ] && echo "Frequency: $(lscpu | grep 'CPU MHz' | awk '{print $3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz)"
-  [ "$show_cputemperature" = "enable" ] && echo "Temperature: $(sensors | grep 'temp1' | awk '{print $2}' | head -1 | tr -d '+')"
+  [ "$show_cputemperature" = "enable" ] && echo "Temperature: $(sensors | grep 'temp1' | head -1 | tr -d '+' | awk '{print $2}')"
   [ "$show_cpuutilization" = "enable" ] && echo "Utilization: $(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)"
   echo
 }
@@ -72,11 +72,24 @@ function raminfo {
 }
 
 function gpuinfo {
+ # determining if gpu is amd, nvidia or unknown
+ gpudriver=$(lspci -k | grep -A 2 -E "VGA" | grep "Kernel" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
+ echo "$gpudriver" | grep "amd" >/dev/null && \
+  gputemp=$(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C) && \
+  gpufreq=$(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print $2}') && \
+  gpuutil=$(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %)
+ echo "$gpudriver" | grep "nv\|nouv" >/dev/null && \
+  gputemp=$(cut -c 1-2 /sys/class/hwmon*/*/temp1_input | tr -d '\n' ; echo °C) && \
+  gpufreq="" && \
+  gpuutil=""
+ [ -z "$gputemp" ] && gputemp="N/A"
+ [ -z "$gpufreq" ] && gpufreq="N/A"
+ [ -z "$gpuutil" ] && gpuutil="N/A"
  echo ":: GPU Info ::"
  [ "$show_gpumodel" = "enable" ] && echo "Model: $(lspci -k | grep -A 2 -E 'VGA' | grep 'Subsystem' | cut -d ':' -f 2 | awk '$1=$1')"
- [ "$show_gpufrequency" = "enable" ] && echo "Frequency: $(grep '*' /sys/class/drm/card0/device/pp_dpm_sclk | awk '{print $2}')"
- [ "$show_gputemperature" = "enable" ] && echo "Temperature: $(cut -c 1-2 /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input | tr -d '\n' ; echo °C)"
- [ "$show_gpuutilization" = "enable" ] && echo "Utilization: $(cat /sys/class/drm/card0/device/gpu_busy_percent | tr -d '\n' ; echo %)"
+ [ "$show_gpufrequency" = "enable" ] && echo "Frequency: $gpufreq"
+ [ "$show_gputemperature" = "enable" ] && echo "Temperature: $gputemp"
+ [ "$show_gpuutilization" = "enable" ] && echo "Utilization: $gpuutil"
  echo
 }
 
