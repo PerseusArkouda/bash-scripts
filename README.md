@@ -12,8 +12,6 @@ memuse - Script to display the memory usage of each running ARK Server.
 
 moddownloader - Script to download mods directly from steamcmd.
 
-systeminfo - Script to show a quick overview of the system's hardware and activity.
-
 checksmart - Script to check disks with SMART capability for health status.
 
 checkforddos - Script to create a graph of incoming connection to help determine if you are under DDOS attacks.
@@ -22,5 +20,8 @@ replacetext - Script to find and replace text on files on current dir and it's s
 
 baktool - Backup tool script to get local incremental backups by using rsync.
 
+systeminfo - Script to show a quick overview of the system's hardware and activity.
+![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)
+
 HwOSD - Linux dynamic hardware information OSD.
-![HwOSD Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/HwOSD-Screenshot.png?raw=true)
+![HwOSD Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/HwOSD-Screenshot.jpg?raw=true)
