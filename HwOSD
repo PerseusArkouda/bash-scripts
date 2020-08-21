@@ -104,6 +104,8 @@ function disksinfo {
 }
 
 # Error handling
+[ -z "$DISPLAY" ] && error "No active displays found. Are you sure Xorg is properly installed?"
+chkinstalled "gdbus"
 [ ! -f "$(pwd)/notify-send.sh" ] && error "notify-send.sh not found in current dir."
 [ "$show_cpuutilization" = "enable" ] && chkinstalled "top"
 [ "$show_cputemperature" = "enable" ] && chkinstalled "sensors"
@@ -126,9 +128,9 @@ echo '\n' ;
 while true; do
  killpid "notify-send.sh"
  killpid "Notifications"
- [ -f "$(pwd)/.exit" ] && rm $(pwd)/.exit && pkill notify 2>/dev/null && break
+ [ -f "$(pwd)/.exit" ] && rm $(pwd)/.exit && break
  [ -f "$hwid" ] && id=$(cat "$hwid")
- "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -u critical -R "$hwid" -r "$id" "\\\\\\\\ HwOSD \\\\\\\\" "$(eval $hwinfo)"
+ "$(pwd)/notify-send.sh" -o "Click to exit:touch '$(pwd)/.exit'" -t 5000 -u critical -R "$hwid" -r "$id" "\\\\\\\\ HwOSD \\\\\\\\" "$(eval $hwinfo)"
  sleep 1
 done
 
