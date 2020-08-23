@@ -4,20 +4,20 @@
 # Set specific only file with -f parameter at the end of the command.
 #  When asked for path enter just the file name or the full path plus the file
 #  name if you are not in the same directory with the file.
-# Syntax: ./replacetext "text to be replaced" "text to replace"
+# Syntax: ./replacetext "text to find" "text to replace"
 #  In order to escape poison characters from breaking sed such as: # $ @ * & etc
 #   use \ symbol before of each one and always verify the final your files.
 
 echo && echo "Text Replace Tool" && echo
 
-[ -z "$*" ] && echo 'Syntax: ./replacetext "text to be replaced" "text to replace"' && \
+[ -z "$*" ] && echo 'Syntax: ./replacetext "text to find" "text to replace"' && \
  echo "Set specific only file with -f parameter at the end of the command." && exit 0
 
 function error {
  echo "Error: ${msg}. Exiting." && exit 1
 }
 
-[ -z "$1" ] && msg="First (text to be replaced) parameter is missing" && error
+[ -z "$1" ] && msg="First (text to find) parameter is missing" && error
 [ -z "$2" ] && msg="Second (tex to replace) parameter is missing" && error
 [ "$3" = "-f" ] && read -rp "Enter path to the file: " "file"
 [ ! -z "$file" ] && [ ! -f "$file" ] && msg="$file not found" && error
