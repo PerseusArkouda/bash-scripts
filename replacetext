@@ -1,13 +1,40 @@
 #!/bin/bash
 # Text replacing tool
 # This script finds and replaces text on files on current dir and it's subdirs.
+# Set specific only file with -f parameter at the end of the command.
+#  When asked for path enter just the file name or the full path plus the file
+#  name if you are not in the same directory with the file.
 # Syntax: ./replacetext "text to be replaced" "text to replace"
+#  In order to escape poison characters from breaking sed such as: # $ @ * & etc
+#   use \ symbol before of each one and always verify the final your files.
 
-# REQUIRES TESTING
+echo && echo "Text Replace Tool" && echo
 
-[ -z "$1" ] && echo "You have to add as first parameter the text to be replaced. Exiting." && exit 1
-[ -z "$2" ] && echo "You have to add as the second parameter the text to replace. Exiting." && exit 1
+[ -z "$*" ] && echo 'Syntax: ./replacetext "text to be replaced" "text to replace"' && \
+ echo "Set specific only file with -f parameter at the end of the command." && exit 0
 
-grep -rl  --exclude=$(basename $0) "$1" ./ | xargs sed -i "s@$1@$2@g"
-echo "Replaced $1 with $2 on $(pwd) and it's subdirs."
-echo "Script is finished."
+function error {
+ echo "Error: ${msg}. Exiting." && exit 1
+}
+
+[ -z "$1" ] && msg="First (text to be replaced) parameter is missing" && error
+[ -z "$2" ] && msg="Second (tex to replace) parameter is missing" && error
+[ "$3" = "-f" ] && read -rp "Enter path to the file: " "file"
+[ ! -z "$file" ] && [ ! -f "$file" ] && msg="$file not found" && error
+[ ! -z "$file" ] && dir="$file" || dir="./"
+
+[ ! -z "$file" ] & echo "Will replace $1 with $2 in ${file}." || \
+ echo "Will replace $1 with $2 in $(echo $(pwd)) and it's subdirs."
+read -rp "Confirm? (Y/n): " "confirm"
+if [ -z "$confirm" ] || [ "$confirm" = "Y" ] || [ "$confirm" = "y" ]; then
+ grep -rl  --exclude=$(basename $0) "$1" "$dir" | xargs sed -i "s@"$1"@"$2"@g"
+ echo "Result:"
+ [ ! -z "$file" ] && echo "Replaced $1 with $2 in ${file}." || \
+  echo "Replaced $1 with $2 in $(echo $(pwd)) and it's subdirs."
+ echo
+ echo "Always verify your files."
+else
+ msg="Aborted by request" && error
+fi
+
+echo "Script has finished."
