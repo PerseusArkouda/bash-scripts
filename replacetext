@@ -1,6 +1,6 @@
 #!/bin/bash
 # Text replacing tool
-# This script finds and replaces text on files on current dir and it's subdirs.
+# This script finds and replaces text in files in current dir and it's subdirs.
 # Set specific only file with -f parameter at the end of the command.
 #  When asked for path enter just the file name or the full path plus the file
 #  name if you are not in the same directory with the file.

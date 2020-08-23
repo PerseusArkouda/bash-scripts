@@ -16,7 +16,7 @@ checksmart - Script to check disks with SMART capability for health status.
 
 checkforddos - Script to create a graph of incoming connection to help determine if you are under DDOS attacks.
 
-replacetext - Script to find and replace text on files in current dir and it's subdirs or in specified file.
+replacetext - Script to find and replace text in files in current dir and it's subdirs or in specified file.
 
 baktool - Backup tool script to get local incremental backups by using rsync.
 
