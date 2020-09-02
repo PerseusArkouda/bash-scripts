@@ -1,42 +1,54 @@
 #!/bin/bash
-echo "=========================="
-echo "	Steam Mod Downloader"
-echo "=========================="
+echo "========================="
+echo "  Steam Mod Downloader"
+echo "========================="
 echo "By Perseus"
 echo
-# Accepts mod id as parameter. Will ask if not given.
+# Accepts app id (first param) and mod id (second param) as parameters. Will ask if not given.
 # Will resume if download fails until it succeeds.
 
-# Change serverpath if different than your /home/user path.
+# Change serverpath if different than your /home/user path. Also the script assumes Steam (.steam) is installed in serverpath.
 serverpath="$HOME"
-# Set appid of the game. 346110 for Ark Survival Evolved.
-appid=346110
-
-[ ! -d "${serverpath}/.steam" ] && echo "ERROR: ${serverpath}/.steam directory not found. Exiting." && \
- echo "Visit https://ark.gamepedia.com/Dedicated_Server_Setup for more info on installing steam." && exit 1
-[ ! -f "${serverpath}/steamcmd" ] && echo "ERROR: ${serverpath}/steamcmd binary not found. Exiting." && \
- echo "Visit https://ark.gamepedia.com/Dedicated_Server_Setup for more info on installing steamcmd." && exit 1
-
-modid="$1"
-[ -z "$modid" ] && read -rp "Enter Steam Mod ID:" "modid"
+# Uncomment and set appid of the game. 346110 for Ark Survival Evolved.
+#appid=346110
 
 function get_mod {
- "${serverpath}/steamcmd +login anonymous +workshop_download_item $appid $modid validate +exit"
+ "${serverpath}/steamcmd" +login anonymous +workshop_download_item $appid $modid validate +exit
 }
 
-echo "Downloading $modid for appid $appid..."
+function output {
+ echo
+ echo "[Mod Downloader] $msg"
+ [ ! -z "$extramsg" ] && echo "[Mod Downloader] $extramsg" && extramsg=""
+}
 
-false
-get_mod
+[ ! -d "${serverpath}/.steam" ] && msg="ERROR: ${serverpath}/.steam directory not found. Exiting." && \
+ extramsg="Visit https://ark.gamepedia.com/Dedicated_Server_Setup for more info on installing steam." && output && exit 1
+[ ! -f "${serverpath}/steamcmd" ] && msg="ERROR: ${serverpath}/steamcmd binary not found. Exiting." && \
+ extramsg="Visit https://ark.gamepedia.com/Dedicated_Server_Setup for more info on installing steamcmd." && output && exit 1
 
-while [ "$?" -ne 0 ]; do
- echo "Something went wrong downloading the Mod ID $modid. Trying again... (Press ctrl+c to cancel)"
- false
- get_mod
+[ -z "$appid" ] && appid="$1"
+[ -z "$appid" ] && read -rp "[Mod Downloader] Enter Steam App ID: " "appid"
+modid="$2"
+[ -z "$modid" ] && read -rp "[Mod Downloader] Enter Steam Mod ID: " "modid"
+
+for i in {15..01}; do
+ printf "\r\033[K[Mod Downloader] Will start downloading Mod ID: $modid for App ID: ${appid} in $i seconds... (Press ctrl+c to cancel)"
+ sleep 1
 done
 
-[ ! -d "${serverpath}/.steam/SteamApps/workshop/content/${appid}/${modid}" ] && echo "ERROR: Mod ID $modid wasn't downloaded successfully. Try again." && exit 1
+printf "\r\033[K[Mod Downloader] Starting download...\n"
+count=0
+while true; do
+ false
+ get_mod
+ [ "$?" -eq 0 ] && break
+ [ "$count" -ge 30 ] && msg="ERROR: Download attempts of $modid reached the maximum limit of 30. Aborting." && output && break
+ [ "$?" -ne 0 ] && msg="Something went wrong downloading the Mod ID $modid. Trying again... (Press ctrl+c to cancel)" && \
+ extramsg="Some mods require multiple attempts. Ignore any timeout errors." && output
+ let count=count+1
+ sleep 2
+done
 
-echo "Mod found successfully downloaded."
-echo
-echo "Script finished."
+[ ! -d "${serverpath}/.steam/SteamApps/workshop/content/${appid}/${modid}" ] && msg="ERROR: Mod ID $modid wasn't downloaded successfully. Try again." && output && exit 1
+msg="Mod found successfully downloaded." && extramsg="Script finished." && output

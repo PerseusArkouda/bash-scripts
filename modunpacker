@@ -1,0 +1,118 @@
+#!/bin/bash
+# Steam mod unpacker (installer). Uses modified code from ark_update.sh: https://github.com/Nexolight/ark_xposed
+# Change the two variables below according to your setup and then just execute the script or ./modunpacker <appid> <modid>.
+
+# ------ IGNORE ------
+[ ! -z "$1" ] && [ -z "$2" ] && echo "ERROR: The script requires appid as the first parameter and modid for the second. Exiting." && exit 1
+[ -z "$appid" ] && appid="$1"
+[ -z "$appid" ] && read -rp "Enter Steam App ID: " "appid"
+modid="$2"
+[ -z "$modid" ] && read -rp "Enter Steam Mod ID: " "modid"
+# ----- END OF IGNORE ------
+
+# Edit path to your appid dir
+appworkshopdir="$HOME/.steam/SteamApps/workshop/content/$appid"
+# Edit path to your game server dir
+arkserverdir="$HOME/server8"
+# Uncomment and set appid of the game. 346110 for Ark Survival Evolved.
+#appid=346110
+
+# ------ NO NEED TO EDIT BELOW ------
+
+modsrcdir="$appworkshopdir/$modid"
+moddestdir="$arkserverdir/ShooterGame/Content/Mods/$modid"
+
+function extract_mod {
+ [ -d "$moddestdir" ] && echo "Found mod ID: $modid already installed. Reinstalling..." && rm -rf "$moddestdir"
+
+  if [ -f "$modsrcdir/mod.info" ]; then
+    echo "Copying files to $moddestdir..."
+
+    if [ -f "$modsrcdir/WindowsNoEditor/mod.info" ]; then
+     modsrcdir="$modsrcdir/WindowsNoEditor"
+    else
+     echo "ERROR: $modsrcdir/LinuxNoEditor not found."
+     echo "Possibly corrupted mod download. Try to download again. Exiting."
+     exit 1
+    fi
+
+    find "$modsrcdir" -type d -printf "$moddestdir/%P\0" | xargs -0 -r mkdir -p
+
+    find "$modsrcdir" -type f ! \( -name '*.z' -or -name '*.z.uncompressed_size' \) -printf "%P\n" | while read f; do
+      if [ \( ! -f "$moddestdir/$f" \) -o "$modsrcdir/$f" -nt "$moddestdir/$f" ]; then
+        printf "%10d  %s  " "`stat -c '%s' "$modsrcdir/$f"`" "$f"
+        cp "$modsrcdir/$f" "$moddestdir/$f"
+        echo -ne "\r\\033[K"
+      fi
+    done
+
+    find "$modsrcdir" -type f -name '*.z' -printf "%P\n" | while read f; do
+      if [ \( ! -f "$moddestdir/${f%.z}" \) -o "$modsrcdir/$f" -nt "$moddestdir/${f%.z}" ]; then
+        printf "%10d  %s  " "`stat -c '%s' "$modsrcdir/$f"`" "${f%.z}"
+        perl -M'Compress::Raw::Zlib' -e '
+          my $sig;
+          read(STDIN, $sig, 8) or die "Unable to read compressed file";
+          if ($sig != "\xC1\x83\x2A\x9E\x00\x00\x00\x00"){
+            die "Bad file magic";
+          }
+          my $data;
+          read(STDIN, $data, 24) or die "Unable to read compressed file";
+          my ($chunksizelo, $chunksizehi,
+              $comprtotlo,  $comprtothi,
+              $uncomtotlo,  $uncomtothi)  = unpack("(LLLLLL)<", $data);
+          my @chunks = ();
+          my $comprused = 0;
+          while ($comprused < $comprtotlo) {
+            read(STDIN, $data, 16) or die "Unable to read compressed file";
+            my ($comprsizelo, $comprsizehi,
+                $uncomsizelo, $uncomsizehi) = unpack("(LLLL)<", $data);
+            push @chunks, $comprsizelo;
+            $comprused += $comprsizelo;
+          }
+          foreach my $comprsize (@chunks) {
+            read(STDIN, $data, $comprsize) or die "File read failed";
+            my ($inflate, $status) = new Compress::Raw::Zlib::Inflate();
+            my $output;
+            $status = $inflate->inflate($data, $output, 1);
+            if ($status != Z_STREAM_END) {
+              die "Bad compressed stream; status: " . ($status);
+            }
+            if (length($data) != 0) {
+              die "Unconsumed data in input"
+            }
+            print $output;
+          }
+        ' <"$modsrcdir/$f" >"$moddestdir/${f%.z}"
+        touch -c -r "$modsrcdir/$f" "$moddestdir/${f%.z}"
+        echo -ne "\r\\033[K"
+      fi
+    done
+
+    perl -e '
+      my $data;
+      { local $/; $data = <STDIN>; }
+      my $mapnamelen = unpack("@0 L<", $data);
+      my $mapname = substr($data, 4, $mapnamelen - 1);
+      $mapnamelen += 4;
+      my $mapfilelen = unpack("@" . ($mapnamelen + 4) . " L<", $data);
+      my $mapfile = substr($data, $mapnamelen + 8, $mapfilelen);
+      print pack("L< L< L< Z8 L< C L< L<", $ARGV[0], 0, 8, "ModName", 1, 0, 1, $mapfilelen);
+      print $mapfile;
+      print "\x33\xFF\x22\xFF\x02\x00\x00\x00\x01";
+    ' $modid <"$moddestdir/mod.info" >"${moddestdir}.mod"
+
+    if [ -f "$moddestdir/modmeta.info" ]; then
+      cat "$moddestdir/modmeta.info" >>"${moddestdir}.mod"
+    else
+      echo -ne '\x01\x00\x00\x00\x08\x00\x00\x00ModType\x00\x02\x00\x00\x001\x00' >>"${moddestdir}.mod"
+    fi
+    echo "Done!"
+  fi
+}
+
+[ ! -d "$appworkshopdir" ] && echo "ERROR: Steam app workshop dir: $appworkshopdir not found. Exiting." && exit 1
+[ ! -d "$arkserverdir" ] && echo "ERROR: ARK server dir: $arkserverdir not found. Exiting." && exit 1
+[ ! -d "$modsrcdir" ] && echo "ERROR: Mod's source dir: $modsrcdir not found. Exiting." && exit 1
+
+echo "Installing mod ID: $modid for app ID: $appid"
+extract_mod

@@ -10,7 +10,9 @@ tweet2 - Script to fetch tweets from specified Twitter users and sends them to D
 
 memuse - Script to display the memory usage of each running ARK Server.
 
-moddownloader - Script to download mods directly from steamcmd.
+moddownloader - Script to download mods directly from Steam's workshop with steamcmd.
+
+modunpacker - Script to install mods directly from Steam's installation dir to the server/game.
 
 checksmart - Script to check disks with SMART capability for health status.
 
