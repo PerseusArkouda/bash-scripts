@@ -31,7 +31,7 @@ function extract_mod {
     if [ -f "$modsrcdir/WindowsNoEditor/mod.info" ]; then
      modsrcdir="$modsrcdir/WindowsNoEditor"
     else
-     echo "ERROR: $modsrcdir/LinuxNoEditor not found."
+     echo "ERROR: $modsrcdir/WindowsNoEditor not found."
      echo "Possibly corrupted mod download. Try to download again. Exiting."
      exit 1
     fi
