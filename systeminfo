@@ -82,9 +82,9 @@ printf "\r\033[K["$sysos2"] Collecting system info data... Installed Packages"
 [ ! -z "$(which apt)" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
 [ ! -z "$(which emerge)" ] && sysdistropackages="$(qlist -I | wc -l) (emerge)" && pkgmgr=1
 [ -z "$(which pacman)" ] && [ ! -z "$(which yum)" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
-[ "$pkgmgr" = "1" ] && comma1=", "
-[ ! -z "$(which snap)" ] && [ "$sysos2" != "Windows/WSL" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${sysdistrosnap} (snap)" && comma2=", "
-[ ! -z "$(which flatpak)" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma1}${comma2}${sysdistroflatpak} (flatpak)"
+[ "$pkgmgr" = "1" ] && comma=", "
+[ ! -z "$(which snap)" ] && [ "$sysos2" != "Windows/WSL" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistrosnap} (snap)"
+[ ! -z "$(which flatpak)" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistroflatpak} (flatpak)"
 
 printf "\r\033[K["$sysos2"] Collecting system info data... Memory"
 sysramusedb=$(free -b | grep "Mem" | awk '{print $3}')
