@@ -148,6 +148,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  eval sysethinterface${ethcount}="$sysnetworkinterface"
  eval sysethrx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 4p | awk '{print $1}')
  eval sysethtx${ethcount}=$(ip -h -s link show dev "$sysnetworkinterface" 2> /dev/null | sed -n 6p | awk '{print $1}')
+ eval sysethip${ethcount}=$(ip address show "$sysnetworkinterface" 2> /dev/null | grep -w inet | awk '{sub("/24",""); print $2}')
  let ethcount=ethcount+1
 done
 printf "\r\033[K["$sysos2"] Collecting system info data... Internet"
@@ -192,7 +193,8 @@ while [ $i -le $ethcount ]; do
  eval sysethrx=\$"sysethrx${i}"
  eval sysethtx=\$"sysethtx${i}"
  eval sysethinterface=\$"sysethinterface${i}"
- [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} - [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
+ eval sysethip=\$"sysethip${i}"
+ [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} - [${titlecolor}IP${colorend}]: ${neutral}${sysethip}${colorend} - [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
  let i=i+1
 done
 [ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
