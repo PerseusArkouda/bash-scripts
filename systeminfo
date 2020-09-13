@@ -4,7 +4,7 @@
 # Can detect multiple CPUs / Disks / Network Interfaces
 # Special thanks to Phorce1 for suggestions and testing
 # Add --nocolor parameter to disable colored output.
-# Add --nobenchmark parameter to disable benchmark.
+# Add --benchmark parameter to enable benchmark.
 # You can put it on /usr/local/bin and/or append this line to your ~/.bashrc: alias systeminfo="/path/to/systeminfo --nocolor --nobenchmark"
 # Now supports installed packages count for distributions with apt, pacman, yum, snap and flatpak.
 
@@ -18,10 +18,10 @@ iswsl=$(uname -r | grep "microsoft")
 [ -z "$(whereis top | awk '{print $2}')" ] && echo "Error: top not found installed. Install procps package and try again. Exiting." && exit 1
 
 coloroutput=1
-benchmark=1
+benchmark=0
 args="$*"
 grep -q nocolor <<<"$args" && coloroutput=0
-grep -q nobenchmark <<<"$args" && benchmark=0
+grep -q benchmark <<<"$args" && benchmark=1
 
 function main_func {
 
