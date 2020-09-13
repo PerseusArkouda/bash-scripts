@@ -153,6 +153,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
 done
 printf "\r\033[K["$sysos2"] Collecting system info data... Internet"
 sysconnection=$(timeout 3 ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
+sysexternalip=$(wget http://ipecho.net/plain -O - -q ; echo)
 
 [ "$coloroutput" = "1" ] && color_func
 printf "\r\033[K"
@@ -198,7 +199,7 @@ while [ $i -le $ethcount ]; do
  let i=i+1
 done
 [ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
-echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend}"
+echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend} - [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
 echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
