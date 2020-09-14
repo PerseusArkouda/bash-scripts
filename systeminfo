@@ -63,7 +63,7 @@ function bytesToHuman {
     echo "$b$d${S[$s]}"
 }
 
-printf "\r\033[K["$sysos2"] Collecting system info data... System Generic"
+printf "\r\033[K[${sysos2}] Collecting system info data... System Generic"
 system=$(uname -snrm)
 system=$(echo "${system/unknown/}" | awk '$1=$1')
 sysuptime=$(uptime -p)
@@ -71,7 +71,7 @@ sysdate=$(date)
 [ "$sysos2" != "Android" ] && dmiinfo="/sys/devices/virtual/dmi/id" && [ -d "$dmiinfo" ] && sysmanufacturer=$(cat "$dmiinfo/sys_vendor") && sysmodel=$(cat "$dmiinfo/product_name") && syschipset=$(cat "$dmiinfo/board_name")
 [ "$sysos2" = "Android" ] && [ -f "$workdir/termux-info" ] && sysmanufacturer=$(grep "Device manufacturer" "$workdir/termux-info" | cut -d ":" -f 2) && sysmodel=$(grep "Device model" "$workdir/termux-info" | cut -d ":" -f 2) && syschipset="" || sysmanufacturer="" && sysmodel="" && syschipset=""
 
-printf "\r\033[K["$sysos2"] Collecting system info data... System OS"
+printf "\r\033[K[${sysos2}] Collecting system info data... System OS"
 [ "$sysos2" != "Android" ] && sysdistro=$(grep "PRETTY_NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" != "Android" ] && [ -z "$sysdistro" ] && sysdistro=$(grep -w "NAME" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 [ "$sysos2" != "Android" ] && sysdistrobuild=$(grep "BUILD_ID\|VERSION_ID" /etc/os-release | cut -d '=' -f 2 | tr -d '"') && [ -z "$sysdistrobuild" ] && sysdistrobuild="N/A"
@@ -79,7 +79,7 @@ printf "\r\033[K["$sysos2"] Collecting system info data... System OS"
 [ -f "$workdir/termux-info" ] && sysdistrobuild=$(grep "Android version" "$workdir/termux-info" | cut -d ":" -f 2)
 [ -f "$workdir/termux-info" ] && rm "$workdir/termux-info"
 
-printf "\r\033[K["$sysos2"] Collecting system info data... Installed Packages"
+printf "\r\033[K[${sysos2}] Collecting system info data... Installed Packages"
 [ ! -z "$(which pacman 2>/dev/null)" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
 [ ! -z "$(which apt 2>/dev/null)" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
 [ ! -z "$(which emerge 2>/dev/null)" ] && sysdistropackages="$(qlist -I | wc -l) (emerge)" && pkgmgr=1
@@ -88,7 +88,7 @@ printf "\r\033[K["$sysos2"] Collecting system info data... Installed Packages"
 [ ! -z "$(which snap 2>/dev/null)" ] && [ "$sysos2" != "Windows/WSL" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistrosnap} (snap)"
 [ ! -z "$(which flatpak 2>/dev/null)" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistroflatpak} (flatpak)"
 
-printf "\r\033[K["$sysos2"] Collecting system info data... Memory"
+printf "\r\033[K[${sysos2}] Collecting system info data... Memory"
 sysramusedb=$(free -b | grep "Mem" | awk '{print $3}')
 sysramused=$(bytesToHuman "$sysramusedb")
 sysramfreeb=$(free -b | grep "Mem" | awk '{print $7}')
@@ -102,7 +102,7 @@ sysswapfree=$(bytesToHuman "$sysswapfreeb")
 sysswaptotalb=$(free -b | grep "Swap" | awk '{print $2}')
 sysswaptotal=$(bytesToHuman "$sysswaptotalb")
 
-printf "\r\033[K["$sysos2"] Collecting system info data... CPU"
+printf "\r\033[K[${sysos2}] Collecting system info data... CPU"
 cat /proc/cpuinfo > "$workdir/sysinfotmp"
 syscpuphysical=$(grep "physical id" /proc/cpuinfo | awk '{print $4}')
 count=0
@@ -114,7 +114,7 @@ syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
 rm "$workdir/sysinfotmp"
 syscpuload=$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)
 
-printf "\r\033[K["$sysos2"] Collecting system info data... GPU"
+printf "\r\033[K[${sysos2}] Collecting system info data... GPU"
 lspci -k 2>/dev/null | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
 sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
 sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
@@ -122,26 +122,27 @@ sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
 rm "$workdir/tmpgpu"
 sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')
 
-printf "\r\033[K["$sysos2"] Collecting system info data... Disks"
+printf "\r\033[K[${sysos2}] Collecting system info data... Disks"
 df -h > "$workdir/diskstmp"
-disk1="sd"
-disk2="sr"
-disk3="md"
-disk4="nvme"
-disk5="vd"
+disk1="/dev/sd"
+disk2="/dev/sr"
+disk3="/dev/md"
+disk4="/dev/nvme"
+disk5="/dev/vd"
+disk6="zfs"
 count=1
 while true; do
- diskcount="disk${count}"
- declare "dev${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | awk '{print $1}' | sed -n ${count}p)"
- declare "diskmount${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | cut -d '%' -f 2 | sed -n ${count}p)"
- declare "totalsize${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | awk '{print $2}' | sed -n ${count}p)"
- declare "freespace${count}=$(grep "/dev/${!diskcount}" "$workdir/diskstmp" | awk '{print $4}' | sed -n ${count}p)"
+ eval diskcount=\$"disk${count}"
+ declare "dev${count}=$(grep "$diskcount" "$workdir/diskstmp" | awk '{print $1}' | sed -n ${count}p)"
+ declare "diskmount${count}=$(grep "$diskcount" "$workdir/diskstmp" | cut -d '%' -f 2 | sed -n ${count}p)"
+ declare "totalsize${count}=$(grep "$diskcount" "$workdir/diskstmp" | awk '{print $2}' | sed -n ${count}p)"
+ declare "freespace${count}=$(grep "$diskcount" "$workdir/diskstmp" | awk '{print $4}' | sed -n ${count}p)"
  let count=count+1
  [ $count -ge 20 ] && disks=$count && break
 done
 rm "$workdir/diskstmp"
 
-printf "\r\033[K["$sysos2"] Collecting system info data... Network"
+printf "\r\033[K[${sysos2}] Collecting system info data... Network"
 sysnetworkinterfaces=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g' | cut -d "@" -f 1)
 sysnetworkinterfacescount=$(echo "$sysnetworkinterfaces" | wc -l)
 ethcount=1
@@ -153,7 +154,7 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  eval sysethip${ethcount}=$(ip address show "$sysnetworkinterface" 2> /dev/null | grep -w inet | awk '{sub("/24",""); print $2}')
  let ethcount=ethcount+1
 done
-printf "\r\033[K["$sysos2"] Collecting system info data... Internet"
+printf "\r\033[K[${sysos2}] Collecting system info data... Internet"
 sysconnection=$(timeout 3 ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
 sysexternalip=$(wget http://ipecho.net/plain -O - -q ; echo)
 
@@ -188,7 +189,7 @@ while [ $i -le $disks ]; do
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
- [ ! -z "${!dev}" ] && [ ! -z "${!dev##*loop*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
  let i=i+1
 done
 i=1
@@ -207,7 +208,7 @@ echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
 for i in main_func; do
- printf "\r\033[K["$sysos2"] Collecting system info data..."
+ printf "\r\033[K[${sysos2}] Collecting system info data..."
  [ "$benchmark" = "0" ] && main_func && exit 0
  { time -p main_func ; } 2> "$workdir/benchmarktmp"
  benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
