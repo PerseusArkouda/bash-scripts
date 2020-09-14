@@ -115,7 +115,7 @@ rm "$workdir/sysinfotmp"
 syscpuload=$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)
 
 printf "\r\033[K["$sysos2"] Collecting system info data... GPU"
-lspci -k | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
+lspci -k 2>/dev/null | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
 sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
 sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
 sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
