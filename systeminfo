@@ -99,7 +99,7 @@ sysswapusedb=$(free -b | grep "Swap" | awk '{print $3}')
 sysswapused=$(bytesToHuman "$sysswapusedb")
 sysswapfreeb=$(free -b | grep "Swap" | awk '{print $4}')
 sysswapfree=$(bytesToHuman "$sysswapfreeb")
-sysswaptotalb=$(free -b | grep "Mem" | awk '{print $2}')
+sysswaptotalb=$(free -b | grep "Swap" | awk '{print $2}')
 sysswaptotal=$(bytesToHuman "$sysswaptotalb")
 
 printf "\r\033[K["$sysos2"] Collecting system info data... CPU"
