@@ -142,7 +142,7 @@ done
 rm "$workdir/diskstmp"
 
 printf "\r\033[K["$sysos2"] Collecting system info data... Network"
-sysnetworkinterfaces=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g')
+sysnetworkinterfaces=$(ip link | grep " UP " | awk '{print $2}' | sed 's/://g' | cut -d "@" -f 1)
 sysnetworkinterfacescount=$(echo "$sysnetworkinterfaces" | wc -l)
 ethcount=1
 while [ $ethcount -le $sysnetworkinterfacescount ]; do
