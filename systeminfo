@@ -47,9 +47,9 @@ function color_func {
  [ $rampercent -ge 80 ] && ramcolor="$warning"
  [ $rampercent -ge 90 ] && ramcolor="$critical"
  [ "$sysswaptotalb" -ne 0 ] && [ ! -z "$sysswaptotalb" ] && swappercent=$(( ($sysswaptotalb - $sysswapfreeb) * 100 / $sysswaptotalb ))
- [ ! -z "swappercent" ] && [ $swappercent -lt 80 ] && swapcolor="$normal"
- [ ! -z "swappercent" ] && [ $swappercent -ge 80 ] && swapcolor="$warning"
- [ ! -z "swappercent" ] && [ $swappercent -ge 90 ] && swapcolor="$critical"
+ [ ! -z "$swappercent" ] && [ $swappercent -lt 80 ] && swapcolor="$normal"
+ [ ! -z "$swappercent" ] && [ $swappercent -ge 80 ] && swapcolor="$warning"
+ [ ! -z "$swappercent" ] && [ $swappercent -ge 90 ] && swapcolor="$critical"
  set color=1
 }
 
@@ -177,7 +177,7 @@ rm $workdir/tmpcpu
 # Looking for methods to get detailed RAM info without sudo or non core programs.
 #[ ! -z "$sysramtype" ] && echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
 echo $color "[${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}${colorend} - [${titlecolor}USED RAM${colorend}]: ${neutral}${sysramused}${colorend} - [${titlecolor}AVAIL RAM${colorend}]: ${ramcolor}${sysramfree}${colorend}"
-[ ! -z "swappercent" ] && echo $color "[${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}${colorend} - [${titlecolor}USED SWAP${colorend}]: ${neutral}${sysswapused}${colorend} - [${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${colorend}"
+[ ! -z "$swappercent" ] && echo $color "[${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}${colorend} - [${titlecolor}USED SWAP${colorend}]: ${neutral}${sysswapused}${colorend} - [${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${colorend}"
 i=1
 while [ $i -le $disks ]; do
  dev="dev${i}"
