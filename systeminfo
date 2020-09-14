@@ -15,7 +15,9 @@ sysos2=$(uname --operating-system)
 iswsl=$(uname -r | grep "microsoft")
 [ ! -z "$iswsl" ] && sysos2="Windows/WSL"
 [ "$sysos" = "Darwin" ] && echo "Error: macOS not supported yet. Exiting." && exit 1
-[ -z "$(which top)" ] && echo "Error: top not found installed. Install procps package and try again. Exiting." && exit 1
+[ -z "$(which top 2>/dev/null)" ] && echo "Error: top not found installed. Install procps package and try again. Exiting." && exit 1
+[ -z "$(which lspci 2>/dev/null)" ] && echo "Error: lspci not found installed. Install pciutils package and try again. Exiting." && exit 1
+[ -z "$(which wget 2>/dev/null)" ] && echo "Error: wget not found installed. Install wget package and try again. Exiting." && exit 1
 
 coloroutput=1
 benchmark=0
@@ -78,13 +80,13 @@ printf "\r\033[K["$sysos2"] Collecting system info data... System OS"
 [ -f "$workdir/termux-info" ] && rm "$workdir/termux-info"
 
 printf "\r\033[K["$sysos2"] Collecting system info data... Installed Packages"
-[ ! -z "$(which pacman)" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
-[ ! -z "$(which apt)" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
-[ ! -z "$(which emerge)" ] && sysdistropackages="$(qlist -I | wc -l) (emerge)" && pkgmgr=1
-[ -z "$(which pacman)" ] && [ ! -z "$(which yum)" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
+[ ! -z "$(which pacman 2>/dev/null)" ] && sysdistropackages="$(pacman -Q | wc -l) (pacman)" && pkgmgr=1
+[ ! -z "$(which apt 2>/dev/null)" ] && sysdistropackages="$(apt list --installed 2> /dev/null | wc -l) (apt)" && pkgmgr=1
+[ ! -z "$(which emerge 2>/dev/null)" ] && sysdistropackages="$(qlist -I | wc -l) (emerge)" && pkgmgr=1
+[ -z "$(which pacman 2>/dev/null)" ] && [ ! -z "$(which yum 2>/dev/null)" ] && sysdistropackages="$(yum list installed | wc -l) (yum)" && pkgmgr=1
 [ "$pkgmgr" = "1" ] && comma=", "
-[ ! -z "$(which snap)" ] && [ "$sysos2" != "Windows/WSL" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistrosnap} (snap)"
-[ ! -z "$(which flatpak)" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistroflatpak} (flatpak)"
+[ ! -z "$(which snap 2>/dev/null)" ] && [ "$sysos2" != "Windows/WSL" ] && sysdistrosnap=$(snap list | grep -v "Publisher" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistrosnap} (snap)"
+[ ! -z "$(which flatpak 2>/dev/null)" ] && sysdistroflatpak=$(flatpak list | grep -v "Application ID" | wc -l) && sysdistropackages="${sysdistropackages}${comma}${sysdistroflatpak} (flatpak)"
 
 printf "\r\033[K["$sysos2"] Collecting system info data... Memory"
 sysramusedb=$(free -b | grep "Mem" | awk '{print $3}')
