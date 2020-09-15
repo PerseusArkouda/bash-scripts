@@ -130,13 +130,14 @@ disk3="/dev/md"
 disk4="/dev/nvme"
 disk5="/dev/vd"
 disk6="zfs"
+disk7="mnt"
 count=1
 while true; do
- eval diskcount=\$"disk${count}"
- declare "dev${count}=$(grep "$diskcount" "$workdir/diskstmp" | awk '{print $1}' | sed -n ${count}p)"
- declare "diskmount${count}=$(grep "$diskcount" "$workdir/diskstmp" | cut -d '%' -f 2 | sed -n ${count}p)"
- declare "totalsize${count}=$(grep "$diskcount" "$workdir/diskstmp" | awk '{print $2}' | sed -n ${count}p)"
- declare "freespace${count}=$(grep "$diskcount" "$workdir/diskstmp" | awk '{print $4}' | sed -n ${count}p)"
+ diskcount="disk${count}"
+ declare "dev${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{print $1}' | sed -n ${count}p)"
+ declare "diskmount${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | cut -d '%' -f 2 | sed -n ${count}p)"
+ declare "totalsize${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{print $2}' | sed -n ${count}p)"
+ declare "freespace${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{print $4}' | sed -n ${count}p)"
  let count=count+1
  [ $count -ge 20 ] && disks=$count && break
 done
@@ -189,7 +190,7 @@ while [ $i -le $disks ]; do
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
- [ ! -z "${!dev}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
  let i=i+1
 done
 i=1
