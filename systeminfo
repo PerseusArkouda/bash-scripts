@@ -134,7 +134,7 @@ disk7="mnt"
 count=1
 while true; do
  diskcount="disk${count}"
- declare "dev${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{print $1}' | sed -n ${count}p)"
+ declare "dev${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{sub("\\\\",""); print $1}' | sed -n ${count}p)"
  declare "diskmount${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | cut -d '%' -f 2 | sed -n ${count}p)"
  declare "totalsize${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{print $2}' | sed -n ${count}p)"
  declare "freespace${count}=$(grep "${!diskcount}" "$workdir/diskstmp" | awk '{print $4}' | sed -n ${count}p)"
