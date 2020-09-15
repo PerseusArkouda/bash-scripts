@@ -204,7 +204,7 @@ while [ $i -le $ethcount ]; do
 done
 [ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
 echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend} - [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
-echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime}${colorend}"
+echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime/up/running}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
