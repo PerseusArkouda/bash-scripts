@@ -45,10 +45,20 @@ zypper() {
  sudo zypper ref && sudo zypper update && sudo zypper packages --unneeded && sudo zypper packages --orphaned
 }
 
+apk() {
+ sudo apk -U upgrade && sudo apk cache -v sync
+}
+
+emerge() {
+ sudo emerge --sync && sudo eix-update && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
+  emerge @module-rebuild && sudo emerge --ask --depclean && sudo emerge -av @preserved-rebuild && \
+  sudo etc-update && sudo elogv
+}
+
 # Detecting package managers and calls the appropriate functions
 packagesfunc() {
  # If you want to skip a package manager remove item from the array below
- pkgmgrs=( "apt" "pacman" "yum" "zypper" )
+ pkgmgrs=( "apt" "pacman" "yum" "zypper" "apk" "emerge" )
  for i in "${pkgmgrs[@]}"; do
   [ ! -z "$(which $i 2>/dev/null)" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintenance..." && output && \
   $pkgmgr && output ok
