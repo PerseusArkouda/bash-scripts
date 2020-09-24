@@ -196,7 +196,7 @@ while [ $i -le $disks ]; do
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
- [ ! -z "${!dev}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*shm*}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
  let i=i+1
 done
 i=1
