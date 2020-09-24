@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script to perform basic maintenance on Linux systems.
 # While it is considered safe, you are however encouraged to review the commands before you execute this script.
+# Recommended to run it about once a week.
 
 # Enable or Disable items
 enable_packages=1
@@ -15,9 +16,9 @@ enable_dmesg=1
 
 # Output messages function
 output() {
- [ "$1" = "ok" ] && msg="Done." || enter=1
  [ "$1" = "error" ] && echo "$(echo -e '\n\r')[maintenance] ERROR: $msg Exiting." && exit 1
  echo "$(echo -e '\n\r')[maintenance] $msg"
+ [ "$1" = "ok" ] && msg="Done." || enter=1
  [ ! -z "$enter" ] && read -rp "(Press ENTER to continue)" && enter=
  echo
 }
@@ -90,9 +91,9 @@ dmesgfunc() {
 
 # Beginning
 echo "$(echo -e '\n\r')Starting maintenance$(echo -e '\n\r')"
-sudo echo
+chk sudo && sudo echo
 
-# Check if item is enabled, check if is installed (when needed) and call it's function
+# Check if item is enabled, check if it's installed (when needed) and call it's function
 [ "$enable_packages" = 1 ] && packagesfunc
 [ "$enable_systemd" = 1 ] && chk systemctl && journalctl && systemdfunc
 [ "$enable_trim" = 1 ] && chk fstrim && trimfunc
