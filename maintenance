@@ -17,8 +17,8 @@ enable_dmesg=1
 # Output messages function
 output() {
  [ "$1" = "error" ] && echo "$(echo -e '\n\r')[maintenance] ERROR: $msg Exiting." && exit 1
- echo "$(echo -e '\n\r')[maintenance] $msg"
  [ "$1" = "ok" ] && msg="Done." || enter=1
+ echo "$(echo -e '\n\r')[maintenance] $msg"
  [ ! -z "$enter" ] && read -rp "(Press ENTER to continue)" && enter=
  echo
 }
