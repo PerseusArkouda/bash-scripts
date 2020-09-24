@@ -50,7 +50,7 @@ apk() {
 }
 
 emerge() {
- sudo emerge --sync && sudo eix-update && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
+ sudo emerge --sync && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
   emerge @module-rebuild && sudo emerge --ask --depclean && sudo emerge -av @preserved-rebuild && \
   sudo etc-update && sudo elogv
 }
