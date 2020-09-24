@@ -1,0 +1,70 @@
+#!/bin/bash
+# Script to perform basic maintenance on Linux systems.
+# While it is considered safe, you are however encouraged to review the commands before you execute this script.
+
+
+#---- NO NEED TO EDIT ANYTHING BELOW ----
+
+# Functions to execute maintainance commands for the detected package managers
+apt() {
+ sudo apt update && sudo apt upgrade && sudo apt dist-upgrade && sudo apt autoremove && sudo apt autoclean
+}
+
+pacman() {
+ sudo pacman -Syu && sudo pacman -Qen
+}
+
+yum() {
+ sudo yum check-update && sudo yum clean all
+}
+
+zypper() {
+ sudo zypper ref && sudo zypper update && sudo zypper packages --unneeded && sudo zypper packages --orphaned
+}
+
+# Output messages function
+output() {
+ [ "$1" = "ok" ] && msg="Done." || enter=1
+ echo "$(echo -e '\n\r')[maintainance] $msg"
+ [ ! -z "$enter" ] && read -rp "(Press ENTER to continue)" && enter=
+ echo
+}
+
+# Beginning
+echo "$(echo -e '\n\r')Starting maintainance$(echo -e '\n\r')"
+sudo echo
+
+# Detecting package managers and calls the appropriate functions
+# If you want to skip a package manager remove item from the array below
+pkgmgrs=( "apt" "pacman" "yum" "zypper" )
+for i in "${pkgmgrs[@]}"; do
+ chkpkgmgr=$(which "$i")
+ [ ! -z "$chkpkgmgr" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintainance..." && output && \
+ $pkgmgr && output ok
+done
+
+# Cleaning systemd logs, reporting failed services and reporting errors from /var/log and systemd
+[ ! -z "$(which journalctl)" ] && msg="Cleaning systemd logs older than 10 days..." && output && \
+ sudo journalctl --vacuum-time=10d && output ok
+ msg="Reporting systemd errors (inspect manually)..." && output && \
+ journalctl -p 3 -xb && output ok
+[ ! -z "$(which systemctl)" ] && msg="Reporting failed services (inspect manually)..." && output && \
+ sudo systemctl list-units --failed && output ok
+
+# Trimming all available SSD disks defined in /etc/fstab
+[ ! -z "$(which fstrim)" ] && msg="Trimming all fstab defined and supported SSDs..." && output && \
+ sudo fstrim --all --verbose && output ok
+
+# Reporting broken links
+msg="Reporting broken links in your home dir (inspect manually)..." && output && \
+ find ~ -xtype l -print 2>/dev/null | less && output ok
+
+# Listing the 20 largest dirs and files in your home dir
+msg="Listing the 20 largest dirs and files in your home dir (inspect manually)..." && output && \
+ du -ah -d1 ~ 2>/dev/null | sort -hr 2>/dev/null | head -20 && output ok
+
+# Reporting dmesg errors
+msg="Reporting dmesg errors and warnings (inspect manually)..." && output && \
+ dmesg --level=err,warn | less && output ok
+
+echo "maintainance Finished!"

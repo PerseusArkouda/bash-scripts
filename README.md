@@ -18,6 +18,8 @@ replacetext - Script to find and replace text in files in current dir and it's s
 
 baktool - Backup tool script to get local incremental backups by using rsync.
 
+maintainance - Script to perform basic maintenance on Linux systems.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)
