@@ -2,10 +2,32 @@
 # Script to perform basic maintenance on Linux systems.
 # While it is considered safe, you are however encouraged to review the commands before you execute this script.
 
+# Enable or Disable items
+enable_packages=1
+enable_systemd=1
+enable_trim=1
+enable_links=1
+enable_sizes=1
+enable_dmesg=1
+
 
 #---- NO NEED TO EDIT ANYTHING BELOW ----
 
-# Functions to execute maintainance commands for the detected package managers
+# Output messages function
+output() {
+ [ "$1" = "ok" ] && msg="Done." || enter=1
+ [ "$1" = "error" ] && echo "$(echo -e '\n\r')[maintenance] ERROR: $msg Exiting." && exit 1
+ echo "$(echo -e '\n\r')[maintenance] $msg"
+ [ ! -z "$enter" ] && read -rp "(Press ENTER to continue)" && enter=
+ echo
+}
+
+# Checking if program is installed function
+chk() {
+ [ -z "$(which $1)" ] && msg="$1 not found installed. Disable it or install it." && output error
+}
+
+# Functions to execute maintenance commands for the detected package managers
 apt() {
  sudo apt update && sudo apt upgrade && sudo apt dist-upgrade && sudo apt autoremove && sudo apt autoclean
 }
@@ -22,49 +44,60 @@ zypper() {
  sudo zypper ref && sudo zypper update && sudo zypper packages --unneeded && sudo zypper packages --orphaned
 }
 
-# Output messages function
-output() {
- [ "$1" = "ok" ] && msg="Done." || enter=1
- echo "$(echo -e '\n\r')[maintainance] $msg"
- [ ! -z "$enter" ] && read -rp "(Press ENTER to continue)" && enter=
- echo
+# Detecting package managers and calls the appropriate functions
+packagesfunc() {
+ # If you want to skip a package manager remove item from the array below
+ pkgmgrs=( "apt" "pacman" "yum" "zypper" )
+ for i in "${pkgmgrs[@]}"; do
+  [ ! -z "$(which $i)" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintenance..." && output && \
+  $pkgmgr && output ok
+ done
+}
+
+# Cleaning systemd logs, reporting failed services and reporting errors from /var/log and systemd
+systemdfunc() {
+ msg="Cleaning systemd logs older than 10 days..." && output && \
+  sudo journalctl --vacuum-time=10d && output ok
+  msg="Reporting systemd errors (inspect manually)..." && output && \
+  journalctl -p 3 -xb && output ok
+ msg="Reporting failed services (inspect manually)..." && output && \
+  sudo systemctl list-units --failed && output ok
+}
+
+# Trimming all available SSD disks defined in /etc/fstab
+trimfunc() {
+ msg="Trimming all fstab defined and supported SSDs..." && output && \
+  sudo fstrim --all --verbose && output ok
+}
+
+# Reporting broken links
+linksfunc() {
+ msg="Reporting broken links in your home dir (inspect manually)..." && output && \
+  find ~ -xtype l -print 2>/dev/null | less && output ok
+}
+
+# Listing the 20 largest dirs and files in your home dir
+sizesfunc() {
+ msg="Listing the 20 largest dirs and files in your home dir (inspect manually)..." && output && \
+  du -ah -d1 ~ 2>/dev/null | sort -hr 2>/dev/null | head -20 && output ok
+}
+
+# Reporting dmesg errors
+dmesgfunc() {
+ msg="Reporting dmesg errors and warnings (inspect manually)..." && output && \
+  dmesg --level=err,warn | less && output ok
 }
 
 # Beginning
-echo "$(echo -e '\n\r')Starting maintainance$(echo -e '\n\r')"
+echo "$(echo -e '\n\r')Starting maintenance$(echo -e '\n\r')"
 sudo echo
 
-# Detecting package managers and calls the appropriate functions
-# If you want to skip a package manager remove item from the array below
-pkgmgrs=( "apt" "pacman" "yum" "zypper" )
-for i in "${pkgmgrs[@]}"; do
- chkpkgmgr=$(which "$i")
- [ ! -z "$chkpkgmgr" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintainance..." && output && \
- $pkgmgr && output ok
-done
+# Check if item is enabled, check if is installed (when needed) and call it's function
+[ "$enable_packages" = 1 ] && packagesfunc
+[ "$enable_systemd" = 1 ] && chk systemctl && journalctl && systemdfunc
+[ "$enable_trim" = 1 ] && chk fstrim && trimfunc
+[ "$enable_links" = 1 ] && linksfunc
+[ "$enable_sizes" = 1 ] && sizesfunc
+[ "$enable_dmesg" = 1 ] && dmesgfunc
 
-# Cleaning systemd logs, reporting failed services and reporting errors from /var/log and systemd
-[ ! -z "$(which journalctl)" ] && msg="Cleaning systemd logs older than 10 days..." && output && \
- sudo journalctl --vacuum-time=10d && output ok
- msg="Reporting systemd errors (inspect manually)..." && output && \
- journalctl -p 3 -xb && output ok
-[ ! -z "$(which systemctl)" ] && msg="Reporting failed services (inspect manually)..." && output && \
- sudo systemctl list-units --failed && output ok
-
-# Trimming all available SSD disks defined in /etc/fstab
-[ ! -z "$(which fstrim)" ] && msg="Trimming all fstab defined and supported SSDs..." && output && \
- sudo fstrim --all --verbose && output ok
-
-# Reporting broken links
-msg="Reporting broken links in your home dir (inspect manually)..." && output && \
- find ~ -xtype l -print 2>/dev/null | less && output ok
-
-# Listing the 20 largest dirs and files in your home dir
-msg="Listing the 20 largest dirs and files in your home dir (inspect manually)..." && output && \
- du -ah -d1 ~ 2>/dev/null | sort -hr 2>/dev/null | head -20 && output ok
-
-# Reporting dmesg errors
-msg="Reporting dmesg errors and warnings (inspect manually)..." && output && \
- dmesg --level=err,warn | less && output ok
-
-echo "maintainance Finished!"
+echo "maintenance Finished!"
