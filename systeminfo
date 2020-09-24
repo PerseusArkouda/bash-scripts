@@ -16,8 +16,9 @@ iswsl=$(uname -r | grep "microsoft")
 [ ! -z "$iswsl" ] && sysos2="Windows/WSL"
 [ "$sysos" = "Darwin" ] && echo "Error: macOS not supported yet. Exiting." && exit 1
 [ -z "$(which top 2>/dev/null)" ] && echo "Error: top not found installed. Install procps package and try again. Exiting." && exit 1
-[ -z "$(which lspci 2>/dev/null)" ] && echo "Error: lspci not found installed. Install pciutils package and try again. Exiting." && exit 1
+[ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Error: lspci not found installed. Install pciutils package and try again. Exiting." && exit 1
 [ -z "$(which wget 2>/dev/null)" ] && echo "Error: wget not found installed. Install wget package and try again. Exiting." && exit 1
+[ -z "$(which ping 2>/dev/null)" ] && echo "Error: ping not found installed. Install iputils-ping package and try again. Exiting." && exit 1
 
 coloroutput=1
 benchmark=0
@@ -119,7 +120,8 @@ sysmobo=$(cat /sys/devices/virtual/dmi/id/board_vendor)
 syschipset=$(cat /sys/devices/virtual/dmi/id/board_name)
 
 printf "\r\033[K[${sysos2}] Collecting system info data... GPU"
-lspci -k 2>/dev/null | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
+[ -f "/sbin/lspci" ] && lspcibin="/sbin/"
+"${lspcibin}"lspci -k 2>/dev/null | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
 sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
 sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
 sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
@@ -194,7 +196,7 @@ while [ $i -le $disks ]; do
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
- [ ! -z "${!dev}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
  let i=i+1
 done
 i=1
