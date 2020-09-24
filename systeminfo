@@ -67,7 +67,7 @@ function bytesToHuman {
 printf "\r\033[K[${sysos2}] Collecting system info data... System Generic"
 system=$(uname -snrm)
 system=$(echo "${system/unknown/}" | awk '$1=$1')
-sysuptime=$(uptime -p)
+sysuptime=$(uptime -p 2>/dev/null)
 sysdate=$(date)
 [ "$sysos2" != "Android" ] && dmiinfo="/sys/devices/virtual/dmi/id" && [ -d "$dmiinfo" ] && sysmanufacturer=$(cat "$dmiinfo/sys_vendor") && sysmodel=$(cat "$dmiinfo/product_name") && syschipset=$(cat "$dmiinfo/board_name")
 [ "$sysos2" = "Android" ] && [ -f "$workdir/termux-info" ] && sysmanufacturer=$(grep "Device manufacturer" "$workdir/termux-info" | cut -d ":" -f 2) && sysmodel=$(grep "Device model" "$workdir/termux-info" | cut -d ":" -f 2) && syschipset="" || sysmanufacturer="" && sysmodel="" && syschipset=""
@@ -210,7 +210,8 @@ while [ $i -le $ethcount ]; do
 done
 [ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
 echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend} - [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
-echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}System is ${sysuptime/up/running}${colorend}"
+[ -z "$sysuptime" ] && sysuptime=$(uptime) || sysuptime="System is ${sysuptime/up/running}"
+echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}${sysuptime}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
 }
 
