@@ -25,7 +25,7 @@ output() {
 
 # Checking if program is installed function
 chk() {
- [ -z "$(which $1)" ] && msg="$1 not found installed. Disable it or install it." && output error
+ [ -z "$(which $1 2>/dev/null)" ] && msg="$1 not found installed. Disable it or install it." && output error
 }
 
 # Functions to execute maintenance commands for the detected package managers
@@ -50,7 +50,7 @@ packagesfunc() {
  # If you want to skip a package manager remove item from the array below
  pkgmgrs=( "apt" "pacman" "yum" "zypper" )
  for i in "${pkgmgrs[@]}"; do
-  [ ! -z "$(which $i)" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintenance..." && output && \
+  [ ! -z "$(which $i 2>/dev/null)" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintenance..." && output && \
   $pkgmgr && output ok
  done
 }
@@ -74,7 +74,7 @@ trimfunc() {
 # Reporting broken links
 linksfunc() {
  msg="Reporting broken links in your home dir (inspect manually)..." && output && \
-  find ~ -xtype l -print 2>/dev/null | less && output ok
+  find ~ -xtype l -print 2>/dev/null | more && output ok
 }
 
 # Listing the 20 largest dirs and files in your home dir
@@ -86,7 +86,7 @@ sizesfunc() {
 # Reporting dmesg errors
 dmesgfunc() {
  msg="Reporting dmesg errors and warnings (inspect manually)..." && output && \
-  dmesg --level=err,warn | less && output ok
+  dmesg --level=err,warn | more && output ok
 }
 
 # Beginning
