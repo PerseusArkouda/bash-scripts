@@ -2,6 +2,8 @@
 # Script to perform basic maintenance on Linux systems.
 # While it is considered safe, you are however encouraged to review the commands before you execute this script.
 # Recommended to run it about once a week.
+# Known issues: emerge after a world update went into a sync infinite loop. Most probably a timestamp issue but
+#  it's advised to review the chained commands and edit it if you like or disable it by setting enable_packages=0.
 
 # Enable or Disable items
 enable_packages=1
@@ -46,19 +48,24 @@ zypper() {
 }
 
 apk() {
- sudo apk -U upgrade && sudo apk cache -v sync
+ sudo apk -U upgrade && sudo apk cache -v sync 2>/dev/null
 }
 
 emerge() {
- sudo emerge --sync && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
+ sudo emerge --sync && sudo eix-update && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
   emerge @module-rebuild && sudo emerge --ask --depclean && sudo emerge -av @preserved-rebuild && \
   sudo etc-update && sudo elogv
+}
+
+xbps() {
+ chk xcheckrestart && \
+ sudo xbps-install -Su && xcheckrestart && xlocate -S
 }
 
 # Detecting package managers and calls the appropriate functions
 packagesfunc() {
  # If you want to skip a package manager remove item from the array below
- pkgmgrs=( "apt" "pacman" "yum" "zypper" "apk" "emerge" )
+ pkgmgrs=( "apt" "pacman" "yum" "zypper" "apk" "emerge" "xbps" )
  for i in "${pkgmgrs[@]}"; do
   [ ! -z "$(which $i 2>/dev/null)" ] && pkgmgr="$i" && msg="Performing $pkgmgr maintenance..." && output && \
   $pkgmgr && output ok
@@ -96,7 +103,12 @@ sizesfunc() {
 # Reporting dmesg errors
 dmesgfunc() {
  msg="Reporting dmesg errors and warnings (inspect manually)..." && output && \
-  dmesg --level=err,warn | more && output ok
+  if [ ! -z "$(dmesg --level=err,warn 2>/dev/null)" ]; then
+   dmesg --level=err,warn 2>/dev/null | more
+  else
+   dmesg | grep "error\|warning" | more
+ fi
+ output ok
 }
 
 # Beginning
