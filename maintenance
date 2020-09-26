@@ -27,7 +27,7 @@ output() {
 
 # Checking if program is installed function
 chk() {
- [ -z "$(which $1 2>/dev/null)" ] && msg="$1 not found installed. Disable it or install it." && output error
+ [ -z "$(which $1 2>/dev/null)" ] && msg="$1 not found installed. Disable it or install it." && output error || echo >/dev/null
 }
 
 # Functions to execute maintenance commands for the detected package managers
