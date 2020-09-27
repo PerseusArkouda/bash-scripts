@@ -84,6 +84,8 @@ systemdfunc() {
 
 # Trimming all available SSD disks defined in /etc/fstab
 trimfunc() {
+ [ "$osdetect" = "alpine" ] && msg="Alpine doesn't support --all parameter for fstrim. \
+  Change --all to your actual device or disable trim." && output error
  msg="Trimming all fstab defined and supported SSDs..." && output && \
   sudo fstrim --all --verbose && output ok
 }
@@ -114,6 +116,9 @@ dmesgfunc() {
 # Beginning
 echo "$(echo -e '\n\r')Starting maintenance$(echo -e '\n\r')"
 chk sudo && sudo echo
+
+# Detect OS
+osdetect=$(awk -F'=' '/^ID=/ {print $2}' /etc/os-release)
 
 # Check if item is enabled, check if it's installed (when needed) and call it's function
 [ "$enable_packages" = 1 ] && packagesfunc
