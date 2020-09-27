@@ -122,7 +122,7 @@ osdetect=$(awk -F'=' '/^ID=/ {print $2}' /etc/os-release)
 
 # Check if item is enabled, check if it's installed (when needed) and call it's function
 [ "$enable_packages" = 1 ] && packagesfunc
-[ "$enable_systemd" = 1 ] && chk systemctl && journalctl && systemdfunc
+[ "$enable_systemd" = 1 ] && chk systemctl && systemdfunc
 [ "$enable_trim" = 1 ] && chk fstrim && trimfunc
 [ "$enable_links" = 1 ] && linksfunc
 [ "$enable_sizes" = 1 ] && sizesfunc
