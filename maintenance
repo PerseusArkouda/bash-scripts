@@ -27,7 +27,7 @@ output() {
 
 # Checking if program is installed function
 chk() {
- [ -z "$(which $1 2>/dev/null)" ] && msg="$1 not found installed. Disable it or install it." && output error || echo >/dev/null
+ [ -z "$(which $1 2>/dev/null)" ] && msg="$1 not found installed. Install it or disable it." && output error || echo >/dev/null
 }
 
 # Functions to execute maintenance commands for the detected package managers
@@ -52,7 +52,7 @@ apk() {
 }
 
 emerge() {
- sudo emerge --sync && sudo eix-update && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
+ sudo emerge --sync && sudo emerge -uUDav @world --with-bdeps=y --keep-going && \
   emerge @module-rebuild && sudo emerge --ask --depclean && sudo emerge -av @preserved-rebuild && \
   sudo etc-update && sudo elogv
 }
