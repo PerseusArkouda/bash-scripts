@@ -117,8 +117,9 @@ syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
 rm "$workdir/sysinfotmp"
 syscpuload=$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)
 
-printf "\r\033[K[${sysos2}] Collecting system info data... Motherboard"
-sysmobo=$(cat /sys/devices/virtual/dmi/id/board_vendor)
+[ "$sysos2" != "Windows/WSL" ] && \
+printf "\r\033[K[${sysos2}] Collecting system info data... Motherboard" && \
+sysmobo=$(cat /sys/devices/virtual/dmi/id/board_vendor) && \
 syschipset=$(cat /sys/devices/virtual/dmi/id/board_name)
 
 printf "\r\033[K[${sysos2}] Collecting system info data... GPU"
