@@ -2,8 +2,6 @@
 # Script to perform basic maintenance on Linux systems.
 # While it is considered safe, you are however encouraged to review the commands before you execute this script.
 # Recommended to run it about once a week.
-# Known issues: emerge after a world update went into a sync infinite loop. Most probably a timestamp issue but
-#  it's advised to review the chained commands and edit it if you like or disable it by setting enable_packages=0.
 
 # Enable or Disable items
 enable_packages=1
