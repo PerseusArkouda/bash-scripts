@@ -19,6 +19,8 @@ iswsl=$(uname -r | grep "microsoft")
 [ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Error: lspci not found installed. Install pciutils package and try again. Exiting." && exit 1
 [ -z "$(which wget 2>/dev/null)" ] && echo "Error: wget not found installed. Install wget package and try again. Exiting." && exit 1
 [ -z "$(which ping 2>/dev/null)" ] && echo "Error: ping not found installed. Install iputils-ping package and try again. Exiting." && exit 1
+[ -z "$(ping -c 1 localhost 2>/dev/null)" ] && echo "ERROR: You don't have permissions to ping. To remove the restriction run: sudo chown $USER:$USER $(which ping)" && exit 1
+[ -z "$(dmesg 2>/dev/null)" ] && echo "ERROR: You don't have permissions to dmesg. To remove the restriction run: sudo sysctl kernel.dmesg_restrict=0" && exit 1
 
 coloroutput=1
 benchmark=0
@@ -127,7 +129,6 @@ sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' |
 sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
 rm "$workdir/tmpgpu"
 sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')
-[ "$?" -ne 0 ] && echo "ERROR: You don't have permissions to dmesg. To remove the restriction run: sudo sysctl kernel.dmesg_restrict=0" && exit 1
 
 printf "\r\033[K[${sysos2}] Collecting system info data... Disks"
 df -h > "$workdir/diskstmp"
