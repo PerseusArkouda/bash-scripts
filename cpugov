@@ -1,0 +1,14 @@
+#!/bin/bash
+# Changes the state of CPU Governor between powersave and performance modes.
+# No need for arguments, just run the script again to change the state.
+gov="/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+
+[ "$USER" != "root" ] && echo "Root privileges required. Run: su - or if you are on Ubuntu: sudo su and run the script again." && exit 1
+
+current_state=$(sed -n 1p $gov)
+[ "$current_state" = "powersave" ] && state="performance" || state="powersave"
+
+for file in $gov; do echo "$state" > $file; done
+[ "$?" -eq 0 ] && echo "CPU Governor changed to: $(sed -n 1p $gov)." && exit 0
+
+echo "ERROR: Something went wrong."

@@ -20,6 +20,8 @@ baktool - Backup tool script to get local incremental backups by using rsync.
 
 maintainance - Script to perform basic maintenance on Linux systems.
 
+cpugov - Changes the state of CPU Governor between powersave and performance modes.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)
