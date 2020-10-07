@@ -15,11 +15,11 @@ sysos2=$(uname --operating-system)
 iswsl=$(uname -r | grep "microsoft")
 [ ! -z "$iswsl" ] && sysos2="Windows/WSL"
 [ "$sysos" = "Darwin" ] && echo "Error: macOS not supported yet. Exiting." && exit 1
-[ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Error: lspci not found installed. Install pciutils package and try again. Exiting." && exit 1
-[ -z "$(which wget 2>/dev/null)" ] && echo "Error: wget not found installed. Install wget package and try again. Exiting." && exit 1
-[ -z "$(which ping 2>/dev/null)" ] && echo "Error: ping not found installed. Install iputils-ping package and try again. Exiting." && exit 1
-[ -z "$(ping -c 1 localhost 2>/dev/null)" ] && echo "ERROR: You don't have permissions to ping. To remove the restriction run: sudo chown $USER:$USER $(which ping)" && exit 1
-[ -z "$(dmesg 2>/dev/null)" ] && echo "ERROR: You don't have permissions to dmesg. To remove the restriction run: sudo sysctl kernel.dmesg_restrict=0" && exit 1
+[ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Warning: lspci not found installed. Install pciutils package." && nolspci=1
+[ -z "$(which wget 2>/dev/null)" ] && echo "Warning: wget not found installed. Install wget package." && nowget=1
+[ -z "$(which ping 2>/dev/null)" ] && echo "Warning: ping not found installed. Install iputils-ping package." && noping=1
+[ -z "$(ping -c 1 localhost 2>/dev/null)" ] && echo "Warning: You don't have permissions to ping. To remove the restriction run: sudo chown $USER:$USER $(which ping)" && noping=1
+[ -z "$(dmesg 2>/dev/null)" ] && echo "Warning: You don't have permissions to dmesg. To remove the restriction run: sudo sysctl kernel.dmesg_restrict=0" && nodmesg=1
 
 coloroutput=1
 benchmark=0
@@ -128,14 +128,16 @@ printf "\r\033[K[${sysos2}] Collecting system info data... Motherboard" && \
 sysmobo=$(cat /sys/devices/virtual/dmi/id/board_vendor) && \
 syschipset=$(cat /sys/devices/virtual/dmi/id/board_name)
 
-printf "\r\033[K[${sysos2}] Collecting system info data... GPU"
-[ -f "/sbin/lspci" ] && lspcibin="/sbin/"
-"${lspcibin}"lspci -k 2>/dev/null | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
-sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
-sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
-sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
-rm "$workdir/tmpgpu"
-sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')
+if [ -z "$nolspci" ]; then
+ printf "\r\033[K[${sysos2}] Collecting system info data... GPU"
+ [ -f "/sbin/lspci" ] && lspcibin="/sbin/"
+ "${lspcibin}"lspci -k 2>/dev/null | grep -A 2 -E "VGA" > "$workdir/tmpgpu"
+ sysgpuid=$(grep "VGA" "$workdir/tmpgpu" | cut -d " " -f 1)
+ sysgpudriver=$(grep "Kernel" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1' | head -1)
+ sysgpu=$(grep "Subsystem" "$workdir/tmpgpu" | cut -d ":" -f 2 | awk '$1=$1')
+ rm "$workdir/tmpgpu"
+ [ -z "$nodmesg" ] && sysgpuvram=$(dmesg | grep -o -P -i "(?<=vram:).*(?=M 0x)" | awk '$1=$1')
+fi
 
 printf "\r\033[K[${sysos2}] Collecting system info data... Disks"
 df -h > "$workdir/diskstmp"
@@ -171,8 +173,8 @@ while [ $ethcount -le $sysnetworkinterfacescount ]; do
  let ethcount=ethcount+1
 done
 printf "\r\033[K[${sysos2}] Collecting system info data... Internet"
-sysconnection=$(timeout 3 ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
-sysexternalip=$(wget http://ipecho.net/plain -O - -q ; echo)
+[ -z "$noping" ] && sysconnection=$(timeout 3 ping -c 1 google.com | sed -n 2p | awk '{print $8}' | cut -d "=" -f 2)
+[ -z "$nowget" ] && sysexternalip=$(wget http://ipecho.net/plain -O - -q ; echo)
 
 [ "$coloroutput" = "1" ] && color_func
 printf "\r\033[K"
@@ -219,7 +221,8 @@ while [ $i -le $ethcount ]; do
  let i=i+1
 done
 [ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
-echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend} - [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
+[ ! -z "$sysexternalip" ] && sysexternalip=" - [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
+echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend}${sysexternalip}"
 [ -z "$sysuptime" ] && sysuptime=$(uptime) || sysuptime="System is ${sysuptime/up/running}"
 echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}${sysuptime}${colorend}"
 echo $color "[${titlecolor}DATE${colorend}]: ${neutral}${sysdate}${colorend}"
