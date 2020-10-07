@@ -83,7 +83,7 @@ systemdfunc() {
 # Trimming all available SSD disks defined in /etc/fstab
 trimfunc() {
  [ "$osdetect" = "alpine" ] && msg="Alpine doesn't support --all parameter for fstrim. \
-  Change --all to your actual device or disable trim." && output error
+Change --all to your actual device or disable trim." && output error
  msg="Trimming all fstab defined and supported SSDs..." && output && \
   sudo fstrim --all --verbose && output ok
 }
