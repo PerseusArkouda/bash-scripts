@@ -44,6 +44,10 @@ function color_func {
  [ $cpuloadint -lt 80 ] && cpuloadcolor="$normal"
  [ $cpuloadint -ge 80 ] && cpuloadcolor="$warning"
  [ $cpuloadint -ge 90 ] && cpuloadcolor="$critical"
+ cputempint=$(printf '%.0f\n' "${syscputemp//%/}")
+ [ $cputempint -lt 80 ] && cputempcolor="$normal"
+ [ $cputempint -ge 80 ] && cputempcolor="$warning"
+ [ $cputempint -ge 90 ] && cputempcolor="$critical"
  rampercent=$(( ($sysramtotalb - $sysramfreeb) * 100 / $sysramtotalb ))
  [ $rampercent -lt 80 ] && ramcolor="$normal"
  [ $rampercent -ge 80 ] && ramcolor="$warning"
@@ -117,6 +121,7 @@ rm "$workdir/sysinfotmp"
 syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
 syscpuload=$(printf '%.2f' "$syscpuload")
 syscpuload="${syscpuload}%"
+syscputmp=$(sensors | grep 'Core' | tr -d '+' | awk '{print $3}' | sort | tail -1)
 
 [ "$sysos2" != "Windows/WSL" ] && \
 printf "\r\033[K[${sysos2}] Collecting system info data... Motherboard" && \
@@ -183,7 +188,8 @@ while read line ; do
  let i=i+1
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
-[ ! -z "$syscpucores" ] && echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}"
+[ ! -z "$(which sensors 2>/dev/null)" ] && syscputemp=" - [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
+[ ! -z "$syscpucores" ] && echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
 [ ! -z "$sysgpu" ] && echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
 # Looking for methods to get detailed RAM info without sudo or non core programs.
