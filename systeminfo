@@ -15,9 +15,10 @@ sysos2=$(uname --operating-system)
 iswsl=$(uname -r | grep "microsoft")
 [ ! -z "$iswsl" ] && sysos2="Windows/WSL"
 [ "$sysos" = "Darwin" ] && echo "Error: macOS not supported yet. Exiting." && exit 1
-[ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Warning: lspci not found installed. Install pciutils package." && nolspci=1
-[ -z "$(which wget 2>/dev/null)" ] && echo "Warning: wget not found installed. Install wget package." && nowget=1
-[ -z "$(which ping 2>/dev/null)" ] && echo "Warning: ping not found installed. Install iputils-ping package." && noping=1
+[ -z "$(which sensors 2>/dev/null)" ] && echo "Warning: sensors not found installed. Install lm-sensors package to view CPU Temperature." && nosensors=1
+[ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Warning: lspci not found installed. Install pciutils package to view GPU info." && nolspci=1
+[ -z "$(which wget 2>/dev/null)" ] && echo "Warning: wget not found installed. Install wget package to view external IP info." && nowget=1
+[ -z "$(which ping 2>/dev/null)" ] && echo "Warning: ping not found installed. Install iputils-ping package to view Internet info." && noping=1
 [ -z "$(ping -c 1 localhost 2>/dev/null)" ] && echo "Warning: You don't have permissions to ping. To remove the restriction run: sudo chown $USER:$USER $(which ping)" && noping=1
 [ -z "$(dmesg 2>/dev/null)" ] && echo "Warning: You don't have permissions to dmesg. To remove the restriction run: sudo sysctl kernel.dmesg_restrict=0" && nodmesg=1
 
@@ -121,7 +122,7 @@ rm "$workdir/sysinfotmp"
 syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
 syscpuload=$(printf '%.2f' "$syscpuload")
 syscpuload="${syscpuload}%"
-syscputmp=$(sensors | grep 'Core' | tr -d '+' | awk '{print $3}' | sort | tail -1)
+[ -z "$nosensors" ] && syscputmp=$(sensors | grep 'Core' | tr -d '+' | awk '{print $3}' | sort | tail -1)
 
 [ "$sysos2" != "Windows/WSL" ] && \
 printf "\r\033[K[${sysos2}] Collecting system info data... Motherboard" && \
@@ -190,7 +191,7 @@ while read line ; do
  let i=i+1
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
-[ ! -z "$(which sensors 2>/dev/null)" ] && syscputemp=" - [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
+[ -z "$nosensors" ] && syscputemp=" - [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
 [ ! -z "$syscpucores" ] && echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
 [ ! -z "$sysgpu" ] && echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
