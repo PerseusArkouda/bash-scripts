@@ -15,7 +15,6 @@ sysos2=$(uname --operating-system)
 iswsl=$(uname -r | grep "microsoft")
 [ ! -z "$iswsl" ] && sysos2="Windows/WSL"
 [ "$sysos" = "Darwin" ] && echo "Error: macOS not supported yet. Exiting." && exit 1
-[ -z "$(which top 2>/dev/null)" ] && echo "Error: top not found installed. Install procps package and try again. Exiting." && exit 1
 [ -z "$(which lspci 2>/dev/null)" ] && [ ! -f "/sbin/lspci" ] && echo "Error: lspci not found installed. Install pciutils package and try again. Exiting." && exit 1
 [ -z "$(which wget 2>/dev/null)" ] && echo "Error: wget not found installed. Install wget package and try again. Exiting." && exit 1
 [ -z "$(which ping 2>/dev/null)" ] && echo "Error: ping not found installed. Install iputils-ping package and try again. Exiting." && exit 1
@@ -115,7 +114,9 @@ syscpucores=$(grep "cpu cores" "$workdir/sysinfotmp" | awk '{print $4}')
 syscpusiblings=$(grep "siblings" "$workdir/sysinfotmp" | awk '{print $3}')
 [ "$syscpucores" != "$syscpusiblings" ] && syscpucores=$(( $(echo "$syscpucores" | wc -l) / count )) || syscpucores=$(echo "$syscpucores" | wc -l)
 rm "$workdir/sysinfotmp"
-syscpuload=$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)
+syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
+syscpuload=$(printf '%.2f' "$syscpuload")
+syscpuload="${syscpuload}%"
 
 [ "$sysos2" != "Windows/WSL" ] && \
 printf "\r\033[K[${sysos2}] Collecting system info data... Motherboard" && \
