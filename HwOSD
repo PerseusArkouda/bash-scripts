@@ -60,7 +60,7 @@ function cpuinfo {
   echo ":: CPU Info ::"
   [ "$show_cpumodel" = "enable" ] && echo "Model: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f 2 | awk '$1=$1')"
   [ "$show_cpufrequency" = "enable" ] && echo "Frequency: $(lscpu | grep 'CPU MHz' | awk '{print $3}' | cut -d '.' -f 1 | tr -d '\n' ; echo Mhz)"
-  [ "$show_cputemperature" = "enable" ] && echo "Temperature: $(sensors | grep 'Core 0' | tr -d '+' | awk '{print $3}')"
+  [ "$show_cputemperature" = "enable" ] && echo "Temperature: $(sensors | grep 'Core' | tr -d '+' | awk '{print $3}' | sort | tail -1)"
   [ "$show_cpuutilization" = "enable" ] && echo "Utilization: $(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1}' | tr -d '\n' ; echo %)"
   echo
 }
