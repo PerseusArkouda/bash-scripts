@@ -5,15 +5,23 @@
 
 # Specify user or leave it as is for the current user running it.
 user="$USER"
-# Specify message or add message as a parameter to override this default one
+# Specify message or add message as a parameter to override this default one.
 msg="Hello World!"
+# Specify time in seconds for the message to time out.
+timeout=5
+# Logs the message in the current dir if enabled.
+log="disable"
 
 
 
 #--- NO NEED TO EDIT BELOW ---
+script=$(realpath "$0")
+scriptpath=$(dirname "$script")
 
 [ ! -z "$1" ] && msg="$*"
 
 for i in $(who | awk -v user="$user" '$0 ~ user {gsub("[[:alpha:]]|/",""); print $1}'); do
- echo -e "$(echo -e "\n\r")\e[31mATTENTION: ${msg}\e[0m$(echo -e "\n\r")" > /dev/pts/$i
+ (printf "\r\033[K\e[31mATTENTION: ${msg}\e[0m" > /dev/pts/$i && sleep "$timeout" && printf "\r\033[K")&
 done
+
+[ "$log" = "enable" ] && echo "$(date) - $msg" >> "$scriptpath/$script-logs.txt"
