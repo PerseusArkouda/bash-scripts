@@ -22,6 +22,8 @@ maintainance - Script to perform basic maintenance on Linux systems.
 
 cpugov - Changes the state of CPU Governor between powersave and performance modes.
 
+msguser - Sends an important specified message to the current user (or specified one) in all of his/her terminal sessions in red color.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)

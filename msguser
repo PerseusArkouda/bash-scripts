@@ -1,0 +1,19 @@
+#!/bin/bash
+# This script sends an important specified message to the current user (or specified one) in all of his/her terminal sessions in red color.
+# Can be incorporated inside other scripts and be used as an alert for low memory or other urgent alerts.
+
+
+# Specify user or leave it as is for the current user running it.
+user="$USER"
+# Specify message or add message as a parameter to override this default one
+msg="Hello World!"
+
+
+
+#--- NO NEED TO EDIT BELOW ---
+
+[ ! -z "$1" ] && msg="$*"
+
+for i in $(who | awk -v user="$user" '$0 ~ user {gsub("[[:alpha:]]|/",""); print $1}'); do
+ echo -e "$(echo -e "\n\r")\e[31mATTENTION: ${msg}\e[0m" > /dev/pts/$i
+done
