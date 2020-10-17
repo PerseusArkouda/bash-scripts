@@ -8,10 +8,6 @@
 
 
 
-# If you have notify-send installed you can enable/disable notifications when it's active or not.
-notification="enable"
-
-
 #--- NO NEED TO EDIT BELOW ---
 
 [ -z $(which caffeine) ] && echo "Error. Caffeine not found installed." && exit 1
@@ -21,20 +17,12 @@ while true; do
  cafpid=$(pgrep caffeine)
 
  if [ ! -z "$chk" ]; then
-  if [ -z "$cafpid" ]; then
-   # comment below to silence
-   [ "$notification" = "enable" ] && [ ! -z $(which notify-send) ] && $(which notify-send) "notidle starting"
-   $(which caffeine) 2>/dev/null &
-  fi
+  [ -z "$cafpid" ] && $(which caffeine) 2>/dev/null &
  else
-  if [ ! -z "$cafpid" ]; then
-   pkill caffeine
-   # comment below to silence
-   [ "$notification" = "enable" ] && [ ! -z $(which notify-send) ] && $(which notify-send) "notidle stopped"
-  fi
+  [ ! -z "$cafpid" ] && pkill caffeine
  fi
  sleep 5
- # Uncomment to debug
+ # Uncomment and run manually to debug
  #[ -z "$chk" ] && echo "Sound not active." || echo "Sound active."
  #[ -z "$cafpid" ] && echo "Caffeine not running." || echo "Caffeine running."
 done
