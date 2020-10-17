@@ -1,11 +1,18 @@
 #!/bin/bash
 # This script prevents your system from starting the screensaver or going to sleep if your sound is active.
-# Once your sound is idle deactives.
+# Once your sound is idle deactivates.
 # You can add it in your ~/.xsession like: /path/to/notidle &
-# Or in crontab like: @reboot /path/to/notidle &
 # To stop it: pkill notidle
 #
 # Requires Caffeine.
+
+
+
+# If you have notify-send installed you can enable/disable notifications when it's active or not.
+notification="enable"
+
+
+#--- NO NEED TO EDIT BELOW ---
 
 [ -z $(which caffeine) ] && echo "Error. Caffeine not found installed." && exit 1
 
@@ -14,9 +21,17 @@ while true; do
  cafpid=$(pgrep caffeine)
 
  if [ ! -z "$chk" ]; then
-  [ -z "$cafpid" ] && caffeine 2>/dev/null &
+  if [ -z "$cafpid" ]; then
+   # comment below to silence
+   [ "$notification" = "enable" ] && [ ! -z $(which notify-send) ] && $(which notify-send) "notidle starting"
+   $(which caffeine) 2>/dev/null &
+  fi
  else
-  [ ! -z "$cafpid" ] && pkill caffeine
+  if [ ! -z "$cafpid" ]; then
+   pkill caffeine
+   # comment below to silence
+   [ "$notification" = "enable" ] && [ ! -z $(which notify-send) ] && $(which notify-send) "notidle stopped"
+  fi
  fi
  sleep 5
  # Uncomment to debug
