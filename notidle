@@ -1,0 +1,25 @@
+#!/bin/bash
+# This script prevents your system from starting the screensaver or going to sleep if your sound is active.
+# Once your sound is idle deactives.
+# You can add it in your ~/.xsession like: /path/to/notidle &
+# Or in crontab like: @reboot /path/to/notidle &
+# To stop it: pkill notidle
+#
+# Requires Caffeine.
+
+[ -z $(which caffeine) ] && echo "Error. Caffeine not found installed." && exit 1
+
+while true; do
+ chk=$(grep RUNNING /proc/asound/card*/pcm*/sub*/status)
+ cafpid=$(pgrep caffeine)
+
+ if [ ! -z "$chk" ]; then
+  [ -z "$cafpid" ] && caffeine 2>/dev/null &
+ else
+  [ ! -z "$cafpid" ] && pkill caffeine
+ fi
+ sleep 5
+ # Uncomment to debug
+ #[ -z "$chk" ] && echo "Sound not active." || echo "Sound active."
+ #[ -z "$cafpid" ] && echo "Caffeine not running." || echo "Caffeine running."
+done
