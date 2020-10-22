@@ -194,7 +194,7 @@ while read line ; do
  let i=i+1
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
-[ ! -z "$syscpumhz" ] && syscpumhz="[${titlecolor}CPU MHZ${colorend}]: ${cputempcolor}${syscpumhz}${colorend} - "
+[ ! -z "$syscpumhz" ] && syscpumhz="[${titlecolor}CPU MHZ${colorend}]: ${neutral}${syscpumhz}${colorend} - "
 [ -z "$nosensors" ] && [ ! -z "$syscputmp" ] && syscputemp=" - [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
 [ ! -z "$syscpucores" ] && echo $color "${syscpumhz}[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
