@@ -122,6 +122,8 @@ rm "$workdir/sysinfotmp"
 syscpuload=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else print ($2+$4-u1) * 100 / (t-t1); }' <(grep 'cpu ' /proc/stat) <(sleep 1;grep 'cpu ' /proc/stat))
 syscpuload=$(printf '%.2f' "$syscpuload")
 syscpuload="${syscpuload}%"
+[ ! -z $(which lscpu) ] && syscpumhz=$(lscpu | awk '/max MHz/ {gsub(/[[:alpha:]:]/,"");print int($0)}')
+[ ! -z $(which lscpu) ] && [ -z "$syscpumhz" ] && syscpumhz=$(lscpu | awk '/CPU MHz/ {gsub(/[[:alpha:]:]/,"");print int($0)}')
 [ -z "$nosensors" ] && syscputmp=$(sensors | grep 'Core' | tr -d '+' | awk '{print $3}' | sort | tail -1)
 [ -z "$nosensors" ] && [ ! -z $(sensors | grep 'k10temp') ] && syscputmp=$(sensors | awk '/Tdie/ {gsub("+",""); print $2;exit}')
 
@@ -192,8 +194,9 @@ while read line ; do
  let i=i+1
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
+[ ! -z "$syscpumhz" ] && syscpumhz="[${titlecolor}CPU MHZ${colorend}]: ${cputempcolor}${syscpumhz}${colorend} - "
 [ -z "$nosensors" ] && [ ! -z "$syscputmp" ] && syscputemp=" - [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
-[ ! -z "$syscpucores" ] && echo $color "[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
+[ ! -z "$syscpucores" ] && echo $color "${syscpumhz}[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
 [ ! -z "$sysgpu" ] && echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
 # Looking for methods to get detailed RAM info without sudo or non core programs.
