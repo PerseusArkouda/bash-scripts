@@ -30,7 +30,7 @@ chk() {
 
 # Functions to execute maintenance commands for the detected package managers
 apt() {
- sudo apt update && sudo apt upgrade && sudo apt dist-upgrade && sudo apt autoremove && sudo apt autoclean
+ sudo apt update && sudo apt upgrade && sudo apt install -f && sudo apt autoremove && sudo apt clean && sudo apt autoclean
 }
 
 pacman() {

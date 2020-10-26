@@ -209,11 +209,13 @@ while [ $i -le $disks ]; do
  diskmount="diskmount${i}"
  totalsize="totalsize${i}"
  freespace="freespace${i}"
+ disktype=$(df -T | awk -vval="${!dev}" '$0 ~ val {print $2}')
+ [ ! -z "$disktype" ] && sysdisktype="- [${titlecolor}FILESYSTEM${colorend}]: ${neutral}${disktype}${colorend} "
  [ ! -z "$color" ] &&  [ ! -z "${!totalsize}" ] && diskpercent=$(( ($(printf '%.0f\n' "${!totalsize: : -1}") - $(printf '%.0f\n' "${!freespace: : -1}" )) * 100 / $(printf '%.0f\n' "${!totalsize: : -1}") ))
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
- [ ! -z "${!dev}" ] && [ ! -z "${!dev##*udev*}" ] && [ ! -z "${!dev##*shm*}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} - [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*udev*}" ] && [ ! -z "${!dev##*shm*}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} ${sysdisktype}- [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
  let i=i+1
 done
 i=1

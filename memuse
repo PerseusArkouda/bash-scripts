@@ -4,5 +4,5 @@
 
 ps -eo size,rss,command --sort -size | awk '/ShooterGameServer/ && !/awk/ {print v"[VIRT]:",$1=int(10*$1/1024/1024)/10"GB","- [RES]:",$2=int(10*$2/1024/1024)/10"GB","!",$0}' | \
  awk -F'!|SessionName=' '{print $1,"- "$3}' | awk -F'?' '{print $1}' | column -t -s '-'
-free -h | awk '/^Mem/ {print "Total RAM: "$4"B/"$2"B"}'
+free -h | awk '/^Mem/ {print "Total RAM: "$7"B/"$2"B"}'
 free -h | awk '/^Swap/ {print "Total Swap: "$4"B/"$2"B"}'
