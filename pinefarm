@@ -1,5 +1,5 @@
 #!/bin/bash
-# Parody script meme related to Luke's Smith video: https://www.youtube.com/watch?v=dJqEP7-_Bu8
+# Parody meme script related to Luke's Smith video: https://www.youtube.com/watch?v=dJqEP7-_Bu8
 
 function check_pinefarm {
  pinefarmstate=( "${pinefarm[@]/#/${treestate}}" )
@@ -32,21 +32,21 @@ grep "L\|l" <<<"$l" >/dev/null && check_pinefarm
 echo -e "\n-> Cut the pines"
 for pines in "${pinefarm[@]}"; do
  pinefarm=( "${pinefarm[@]/$pines}" )
- printf "\r\033[KCutting ${pines}..."
+ printf "\r\033[KCutting pines... $pines"
  sleep 0.1
 done
-printf "\r\033[KWaiting 20 years for pines to grow... Done.\n"
+printf "\r\033[KCutting pines... Done.\n"
 read -rp "Pines are cut. Press L to take a look at the pinefarm: " "l"
 grep "L\|l" <<<"$l" >/dev/null && check_pinefarm
 
 echo -e "\n-> Get paid for the pines"
 var1=$(shuf -i 100-200 -n 1)
-for acre in $(seq 1 $var1); do
+for acres in $(seq 1 $var1); do
  var2=$(shuf -i 100-200 -n 1)
- for price in $(seq $acre $var2); do
-  printf "\r\033[KCalculating price for $acre acre... Price \$$((price*1000))"
+ for price in $(seq $acres $var2); do
+  printf "\r\033[KCalculating price for $acres acres... Price \$$((price*1000))"
  done
  sleep 0.1
 done
-printf "\r\033[KCalculating price for $acre acre... Done.\n"
+printf "\r\033[KCalculating price for $acres acres... Done.\n"
 echo "Your payment is \$$((price*1000))."
