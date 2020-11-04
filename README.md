@@ -26,6 +26,8 @@ msguser - Sends an important specified message to the current user (or specified
 
 notidle - Prevents your system from starting the screensaver or going to sleep if your sound is active.
 
+pinefarm - Parody meme script related to Luke's Smith video: https://www.youtube.com/watch?v=dJqEP7-_Bu8
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)

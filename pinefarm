@@ -1,0 +1,52 @@
+#!/bin/bash
+# Parody script meme related to Luke's Smith video: https://www.youtube.com/watch?v=dJqEP7-_Bu8
+
+function check_pinefarm {
+ pinefarmstate=( "${pinefarm[@]/#/${treestate}}" )
+ grep pine <<<"${pinefarm[@]}" >/dev/null && echo -e "\nYour pinefarm is full of $treestate trees. You see: \n${pinefarmstate[@]}" ||
+  echo -e "\nYou're looking at an empty field. Your pinefarm is flat and you can even see the highway."
+ read -rp "Press [ENTER] to continue..."
+}
+
+echo -e "\n-> Plant the pines"
+for pines in {1..100}; do
+ printf "\r\033[KPlanting 100 pines to pinefarm... Planting pine${pines}"
+ pinefarm+=( "pine${pines}" )
+ sleep 0.1
+done
+treestate="young"
+printf "\r\033[KPlanting 100 pines to pinefarm... Done.\n"
+read -rp "All 100 pines planted. Press L to take a look at the pinefarm: " "l"
+grep "L\|l" <<<"$l" >/dev/null && check_pinefarm
+
+echo -e "\n-> Wait 20 years"
+for years in {1..20}; do
+ printf "\r\033[KWaiting 20 years for pines to grow... Year $years"
+ sleep 0.5
+done
+treestate="grown"
+printf "\r\033[KWaiting 20 years for pines to grow... Done.\n"
+read -rp "Pines are ready to be cut. Press L to take a look at the pinefarm: " "l"
+grep "L\|l" <<<"$l" >/dev/null && check_pinefarm
+
+echo -e "\n-> Cut the pines"
+for pines in "${pinefarm[@]}"; do
+ pinefarm=( "${pinefarm[@]/$pines}" )
+ printf "\r\033[KCutting ${pines}..."
+ sleep 0.1
+done
+printf "\r\033[KWaiting 20 years for pines to grow... Done.\n"
+read -rp "Pines are cut. Press L to take a look at the pinefarm: " "l"
+grep "L\|l" <<<"$l" >/dev/null && check_pinefarm
+
+echo -e "\n-> Get paid for the pines"
+var1=$(shuf -i 100-200 -n 1)
+for acre in $(seq 1 $var1); do
+ var2=$(shuf -i 100-200 -n 1)
+ for price in $(seq $acre $var2); do
+  printf "\r\033[KCalculating price for $acre acre... Price \$$((price*1000))"
+ done
+ sleep 0.1
+done
+printf "\r\033[KCalculating price for $acre acre... Done.\n"
+echo "Your payment is \$$((price*1000))."
