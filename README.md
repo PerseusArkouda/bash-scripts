@@ -28,6 +28,8 @@ notidle - Prevents your system from starting the screensaver or going to sleep i
 
 pinefarm - Parody meme script related to Luke's Smith video: https://www.youtube.com/watch?v=dJqEP7-_Bu8
 
+procmem - Easily readable process memory consumption tool. Process string specified as an argument.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)

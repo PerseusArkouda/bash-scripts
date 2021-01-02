@@ -1,0 +1,8 @@
+#!/bin/bash
+# Easily readable process memory consumption tool. Process string specified as an argument.
+# Example: ./procmem mysql
+
+[ -z "$@" ] && echo "You need to pass a process string as an argument." && exit 1
+
+proc="$@"
+ps -eo size,rss,command --sort -size |  awk -v val="$proc" '$0 ~ val && !/procmem/ && $1="[VIRT]: "int(10*$1/1024)/10"MB",$2="| [RES]: "int(10*$2/1024)/10"MB |"' | column -t -s '|'
