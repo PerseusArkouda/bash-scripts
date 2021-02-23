@@ -209,7 +209,7 @@ while [ $i -le $disks ]; do
  diskmount="diskmount${i}"
  totalsize="totalsize${i}"
  freespace="freespace${i}"
- disktype=$(df -T | awk -vval="${!dev}" '$0 ~ val {print $2}')
+ disktype=$(df -T 2>/dev/null | awk -vval="${!dev}" '$0 ~ val {print $2}')
  [ ! -z "$disktype" ] && sysdisktype="- [${titlecolor}FILESYSTEM${colorend}]: ${neutral}${disktype}${colorend} "
  [ ! -z "$color" ] &&  [ ! -z "${!totalsize}" ] && diskpercent=$(( ($(printf '%.0f\n' "${!totalsize: : -1}") - $(printf '%.0f\n' "${!freespace: : -1}" )) * 100 / $(printf '%.0f\n' "${!totalsize: : -1}") ))
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
