@@ -1,8 +1,42 @@
 #!/bin/bash
-# Easily readable process memory consumption tool. Process string specified as an argument.
+# Easily readable process reserved memory consumption tool. Process string specified as an argument.
 # Example: ./procmem mysql
 
-[ -z "$@" ] && echo "You need to pass a process string as an argument." && exit 1
+syntax() {
+ echo -e "Syntax:
+  -d <process name>  - Detailed mode. Shows RES and VIRT memory of each process.
+  -h                 - Shows this help message.
+ "
+}
 
-proc="$@"
-ps -eo size,rss,command --sort -size |  awk -v val="$proc" '$0 ~ val && !/procmem/ && $1="[VIRT]: "int(10*$1/1024)/10"MB",$2="| [RES]: "int(10*$2/1024)/10"MB |"' | column -t -s '|'
+procmem() {
+ if [ ! -z "$mode" ]; then
+  ps -eo size,rss,command --sort -size | awk -v val="$proc" '$0 ~ val && !/procmem/ && $1="| [VIRT]: "int(10*$1/1024)/10"MB",$2="| [RES]: "int(10*$2/1024)/10"MB |"' | column -t -s '|'
+ else
+  ps -eo size,rss,command --sort -size | awk -v val="$proc" '$0 ~ val && !/procmem/ && $1="|",$2="[MEM]: "int(10*$2/1024)/10"MB |"' | column -t -s '|'
+ fi
+}
+
+[ -z "$*" ] && echo "You need to pass a process string as an argument." && exit 1
+
+while getopts ":d|:h" opt; do
+ case $opt in
+  d)
+    mode="1"
+  ;;
+  h)
+    syntax
+    exit 0
+  ;;
+  \?)
+    syntax
+    echo "Invalid option: -$OPTARG." 1>&2
+    exit 1
+  ;;
+ esac
+done
+shift $((OPTIND -1))
+
+proc="$*"
+
+procmem
