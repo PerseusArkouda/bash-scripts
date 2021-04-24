@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script to display the memory usage for each running ARK server process.
 # VIRT is the process allocated memory. RES is the actual memory the process uses.
+# Added also CPU usage percentage divided by the cores.
 # Based on Phorce1's memuse.sh
 
 syntax() {
@@ -12,10 +13,14 @@ syntax() {
 
 memuse() {
 if [ ! -z "$mode" ]; then
-  ps -eo size,rss,command --sort -size | awk '/ShooterGameServer/ && !/awk/ {print "[VIRT]:",$1=int(10*$1/1024/1024)/10"GB","- [RES]:",$2=int(10*$2/1024/1024)/10"GB","!",$0}' |
+  cores=$(awk '/cpu cores/ {print $4}' /proc/cpuinfo | head -1) ; dualsocket=$(awk '/physical id/ && /: 1/ {print $0}' /proc/cpuinfo) ; [ ! -z "$dualsocket" ] &&
+   let cores=cores*2 ; ps -eo %cpu,size,rss,command --sort -size |
+   awk -v x=$cores '/ShooterGameServer/ && !/awk/ {print "[CPU]:",$1=int($1/x)"%","[VIRT]:",$2=int(10*$2/1024/1024)/10"GB","- [RES]:",$3=int(10*$3/1024/1024)/10"GB","!",$0}' |
    awk -F'!|SessionName=' '{print $1,"- "$3}' | awk -F'?' '{print $1}' | column -t -s '-'
  else
-  ps -eo size,rss,command --sort -size | awk '/ShooterGameServer/ && !/awk/ {print "[MEM]:",$2=int(10*$2/1024/1024)/10"GB","!",$0}' |
+  cores=$(awk '/cpu cores/ {print $4}' /proc/cpuinfo | head -1) ; dualsocket=$(awk '/physical id/ && /: 1/ {print $0}' /proc/cpuinfo) ; [ ! -z "$dualsocket" ] &&
+   let cores=cores*2 ; ps -eo %cpu,size,rss,command --sort -size |
+   awk -v x=$cores '/ShooterGameServer/ && !/awk/ {print "[CPU]:",$1=int($1/x)"%","[MEM]:",$3=int(10*$3/1024/1024)/10"GB","!",$0}' |
    awk -F'!|SessionName=' '{print $1,"- "$3}' | awk -F'?' '{print $1}' | column -t -s '-'
  fi
  echo
