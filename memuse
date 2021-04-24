@@ -15,12 +15,12 @@ memuse() {
 if [ ! -z "$mode" ]; then
   cores=$(awk '/cpu cores/ {print $4}' /proc/cpuinfo | head -1) ; dualsocket=$(awk '/physical id/ && /: 1/ {print $0}' /proc/cpuinfo) ; [ ! -z "$dualsocket" ] &&
    let cores=cores*2 ; ps -eo %cpu,size,rss,command --sort -size |
-   awk -v x=$cores '/ShooterGameServer/ && !/awk/ {print "[CPU]:",$1=int($1/x)"%","[VIRT]:",$2=int(10*$2/1024/1024)/10"GB","- [RES]:",$3=int(10*$3/1024/1024)/10"GB","!",$0}' |
+   awk -v x=$cores '/ShooterGameServer/ && !/awk/ {print "[CPU]:",substr($1=$1/x,1,4)"%"," - [VIRT]:",$2=int(10*$2/1024/1024)/10"GB","- [RES]:",$3=int(10*$3/1024/1024)/10"GB","!",$0}' |
    awk -F'!|SessionName=' '{print $1,"- "$3}' | awk -F'?' '{print $1}' | column -t -s '-'
  else
   cores=$(awk '/cpu cores/ {print $4}' /proc/cpuinfo | head -1) ; dualsocket=$(awk '/physical id/ && /: 1/ {print $0}' /proc/cpuinfo) ; [ ! -z "$dualsocket" ] &&
    let cores=cores*2 ; ps -eo %cpu,size,rss,command --sort -size |
-   awk -v x=$cores '/ShooterGameServer/ && !/awk/ {print "[CPU]:",$1=int($1/x)"%","[MEM]:",$3=int(10*$3/1024/1024)/10"GB","!",$0}' |
+   awk -v x=$cores '/ShooterGameServer/ && !/awk/ {print "[CPU]:",substr($1=$1/x,1,4)"%"," - [MEM]:",$3=int(10*$3/1024/1024)/10"GB","!",$0}' |
    awk -F'!|SessionName=' '{print $1,"- "$3}' | awk -F'?' '{print $1}' | column -t -s '-'
  fi
  echo
