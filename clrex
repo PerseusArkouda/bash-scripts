@@ -1,0 +1,79 @@
+#!/bin/bash
+# Clear but Exclude script will delete the directories and files from a specified directory, except the specified names of directories and files.
+# NOTICE: Get familiar with it before using it for important tasks!! The actions cannot be reversed!! USE AT YOUR OWN RISK!!
+# Example: ./clrex -k file1,file2 -d /home/user/test_directory -e directories -p -s
+#  The above example will delete every file inside test_directory that doesn't have in it's name the pattern file1 and file2, but it will
+#  exclude subdirectories and it will not ask for confirmation.
+
+
+# Title
+echo "Clear but Exclude script - by Perseus" && echo
+
+# Syntax function
+syntax() {
+ echo "Syntax:
+ -k <names>			Keep directories and files names to keep separated by commas (Required)
+ -d <directory>			Directory to delete from (Required)
+ -e <directories or files>      Excludes directories or files.
+ -p				Pattern mode. Will delete contents if pattern matches. Useful when you don't want to type the file extensions
+ -s                     	Silent mode. Will not ask for confirmation. Useful for automation. USE WITH CAUTION!
+"
+}
+
+# Main function
+filter() {
+ Array1=($(sed "s/,/ /g" <<<"$keep"))
+ Array2=($(ls "$dir"))
+ [ ! -z "$exclude" ] && [ "$exclude" = "directories" ] && Array2=($(ls -p "$dir" | grep -v /))
+ [ ! -z "$exclude" ] && [ "$exclude" = "files" ] && Array2=($(ls -d "$dir"))
+ echo "${Array1[@]}" | tr ' ' '\n' >/tmp/arr1.tmp
+ echo "${Array2[@]}" | tr ' ' '\n' >/tmp/arr2.tmp
+ for i in $(cat /tmp/arr2.tmp); do
+  for x in $(cat /tmp/arr1.tmp); do
+   [ -z "$pattern" ] && sed -i "/^${x}$/d" /tmp/arr2.tmp || sed -i "/${x}/d" /tmp/arr2.tmp
+  done
+ done
+ Array3=($(cat /tmp/arr2.tmp))
+ if [ -z "$silent" ]; then
+  echo "NOTICE: This action cannot be reversed. All the following directories and files will be permanently deleted!!"
+  echo "Filtered remaining contents for deletion in $dir:"
+  echo "${Array3[@]}" | tr ' ' '\n'
+  echo && read -rp "Continue? (y/n):" "confirm"
+  [ "$confirm" != "y" ] && echo && echo "Aborted." && exit 0
+ fi
+ for i in "${Array3[@]}"; do
+  echo "Deleting: $dir/$i"
+  rm -r "$dir/$i"
+  [ "$?" != 0 ] && echo && echo "Unknown error. Aborting." && exit 1
+ done
+ echo && echo "Finished successfully."
+ exit 0
+}
+
+# Getting parameters
+while getopts ":k:d:e:ps" opt; do
+  case $opt in
+    k) keep="$OPTARG"
+    ;;
+    d) dir="$OPTARG"
+    ;;
+    e) exclude="$OPTARG"
+    ;;
+    p) pattern=1
+    ;;
+    s) silent=1
+    ;;
+    \?) syntax && echo "Invalid option --$OPTARG." >&2 && exit 1
+    ;;
+  esac
+done
+
+# Error handling
+[ -z "$*" ] && syntax && echo "Missing required parameters." && exit 1
+[ ! -d "$dir" ] && echo "Error. Directory not found: $dir." && exit 1
+
+# Executing
+[ ! -z "$keep" ] && [ ! -z "$dir" ] && filter
+
+# Uknown error
+syntax && echo "Unknown Error. Something went wrong." && exit 1

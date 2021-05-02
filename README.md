@@ -34,6 +34,10 @@ systeminfo - Script to show a quick overview of the system's hardware and activi
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)
 
+clrex - Clear but Exclude script will delete the directories and files from a specified directory, except the specified names of directories and files.
+
+![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/clrex-Screenshot.png?raw=true)
+
 HwOSD - Linux dynamic hardware information OSD.
 
 ![HwOSD Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/HwOSD-Screenshot.jpg?raw=true)
