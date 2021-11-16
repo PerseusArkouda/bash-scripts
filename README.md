@@ -30,6 +30,9 @@ pinefarm - Parody meme script related to Luke's Smith video: https://www.youtube
 
 procmem - Easily readable process memory consumption tool. Process string specified as an argument.
 
+systemguard - Script that checks for CPU, GPU temperatures and RAM, Disk usage limits  
+ which then executes a user defined failsafe command once it reaches a limit.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)

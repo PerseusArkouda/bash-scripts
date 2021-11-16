@@ -46,9 +46,9 @@ function color_func {
  [ $cpuloadint -ge 80 ] && cpuloadcolor="$warning"
  [ $cpuloadint -ge 90 ] && cpuloadcolor="$critical"
  cputempint=$(printf '%.0f\n' "${syscputemp//%/}")
- [ $cputempint -lt 80 ] && cputempcolor="$normal"
- [ $cputempint -ge 80 ] && cputempcolor="$warning"
- [ $cputempint -ge 90 ] && cputempcolor="$critical"
+ [ $cputempint -lt 70 ] && cputempcolor="$normal"
+ [ $cputempint -ge 70 ] && cputempcolor="$warning"
+ [ $cputempint -ge 85 ] && cputempcolor="$critical"
  rampercent=$(( ($sysramtotalb - $sysramfreeb) * 100 / $sysramtotalb ))
  [ $rampercent -lt 80 ] && ramcolor="$normal"
  [ $rampercent -ge 80 ] && ramcolor="$warning"
@@ -185,24 +185,24 @@ printf "\r\033[K"
 
 echo $color "[${titlecolor}SYSTEM INFO${colorend}]"
 [ ! -z "$system" ] && echo $color "[${titlecolor}SYS${colorend}]: ${neutral}${system}${colorend}"
-[ ! -z "$sysdistropackages" ] && sysdistropackages=" - [${titlecolor}INSTALLED PKGS${colorend}]: ${neutral}${sysdistropackages}${colorend}"
-[ ! -z "$sysdistro" ] && echo $color "[${titlecolor}DISTRO${colorend}]: ${neutral}${sysdistro}${colorend} - [${titlecolor}BUILD${colorend}]: ${neutral}${sysdistrobuild}${colorend}${sysdistropackages}"
-[ ! -z "$sysmobo" ] && echo $color "[${titlecolor}BOARD${colorend}]: ${neutral}${sysmobo}${colorend} - [${titlecolor}CHIPSET${colorend}]: ${neutral}${syschipset}${colorend}"
+[ ! -z "$sysdistropackages" ] && sysdistropackages=" [${titlecolor}INSTALLED PKGS${colorend}]: ${neutral}${sysdistropackages}${colorend}"
+[ ! -z "$sysdistro" ] && echo $color "[${titlecolor}DISTRO${colorend}]: ${neutral}${sysdistro}${colorend} [${titlecolor}BUILD${colorend}]: ${neutral}${sysdistrobuild}${colorend}${sysdistropackages}"
+[ ! -z "$sysmobo" ] && echo $color "[${titlecolor}BOARD${colorend}]: ${neutral}${sysmobo}${colorend} [${titlecolor}CHIPSET${colorend}]: ${neutral}${syschipset}${colorend}"
 i=0
 while read line ; do
  echo $color "[${titlecolor}CPU${i}${colorend}]: ${neutral}${line}${colorend}"
  let i=i+1
 done < $workdir/tmpcpu
 rm $workdir/tmpcpu
-[ ! -z "$syscpumhz" ] && syscpumhz="[${titlecolor}CPU MHZ${colorend}]: ${neutral}${syscpumhz}${colorend} - "
-[ -z "$nosensors" ] && [ ! -z "$syscputmp" ] && syscputemp=" - [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
-[ ! -z "$syscpucores" ] && echo $color "${syscpumhz}[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} - [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
+[ ! -z "$syscpumhz" ] && syscpumhz="[${titlecolor}CPU MHZ${colorend}]: ${neutral}${syscpumhz}${colorend} "
+[ -z "$nosensors" ] && [ ! -z "$syscputmp" ] && syscputemp=" [${titlecolor}CPU TEMP${colorend}]: ${cputempcolor}${syscputmp}${colorend}"
+[ ! -z "$syscpucores" ] && echo $color "${syscpumhz}[${titlecolor}CPU CORES${colorend}]: ${neutral}${syscpucores}${colorend} [${titlecolor}CPU LOAD${colorend}]: ${cpuloadcolor}${syscpuload}${colorend}${syscputemp}"
 [ ! -z "$sysgpuvram" ] && sysgpuvram=" [${titlecolor}VRAM${colorend}]: ${neutral}${sysgpuvram}MB${colorend} -"
 [ ! -z "$sysgpu" ] && echo $color "[${titlecolor}GPU${colorend}]: ${neutral}${sysgpu}${colorend} -${sysgpuvram} [${titlecolor}DRIVER${colorend}]: ${neutral}${sysgpudriver}${colorend}"
 # Looking for methods to get detailed RAM info without sudo or non core programs.
-#[ ! -z "$sysramtype" ] && echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} - [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
-echo $color "[${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}${colorend} - [${titlecolor}USED RAM${colorend}]: ${neutral}${sysramused}${colorend} - [${titlecolor}AVAIL RAM${colorend}]: ${ramcolor}${sysramfree}${colorend}"
-[ "$sysswapusedb" != 0 ] && echo $color "[${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}${colorend} - [${titlecolor}USED SWAP${colorend}]: ${neutral}${sysswapused}${colorend} - [${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${colorend}"
+#[ ! -z "$sysramtype" ] && echo $color "[${titlecolor}RAM TYPE${colorend}]: ${neutral}${sysramtype}${colorend} [${titlecolor}RAM SPEED${colorend}]: ${neutral}${sysramspeed}${colorend}"
+echo $color "[${titlecolor}TOTAL RAM${colorend}]: ${neutral}${sysramtotal}${colorend} [${titlecolor}USED RAM${colorend}]: ${neutral}${sysramused}${colorend} [${titlecolor}AVAIL RAM${colorend}]: ${ramcolor}${sysramfree}${colorend}"
+[ "$sysswapusedb" != 0 ] && echo $color "[${titlecolor}TOTAL SWAP${colorend}]: ${neutral}${sysswaptotal}${colorend} [${titlecolor}USED SWAP${colorend}]: ${neutral}${sysswapused}${colorend} [${titlecolor}FREE SWAP${colorend}]: ${swapcolor}${sysswapfree}${colorend}"
 i=1
 while [ $i -le $disks ]; do
  dev="dev${i}"
@@ -210,12 +210,12 @@ while [ $i -le $disks ]; do
  totalsize="totalsize${i}"
  freespace="freespace${i}"
  disktype=$(df -T 2>/dev/null | awk -vval="${!dev}" '$0 ~ val {print $2}')
- [ ! -z "$disktype" ] && sysdisktype="- [${titlecolor}FILESYSTEM${colorend}]: ${neutral}${disktype}${colorend} "
+ [ ! -z "$disktype" ] && sysdisktype="[${titlecolor}FILESYSTEM${colorend}]: ${neutral}${disktype}${colorend} "
  [ ! -z "$color" ] &&  [ ! -z "${!totalsize}" ] && diskpercent=$(( ($(printf '%.0f\n' "${!totalsize: : -1}") - $(printf '%.0f\n' "${!freespace: : -1}" )) * 100 / $(printf '%.0f\n' "${!totalsize: : -1}") ))
  [ ! -z "$diskpercent" ] && [ $diskpercent -lt 80 ] && diskcolor="$normal"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 80 ] && diskcolor="$warning"
  [ ! -z "$diskpercent" ] && [ $diskpercent -ge 90 ] && diskcolor="$critical"
- [ ! -z "${!dev}" ] && [ ! -z "${!dev##*udev*}" ] && [ ! -z "${!dev##*shm*}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} - [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} - [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} ${sysdisktype}- [${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
+ [ ! -z "${!dev}" ] && [ ! -z "${!dev##*udev*}" ] && [ ! -z "${!dev##*shm*}" ] && [ ! -z "${!dev##*cgroup*}" ] && [ ! -z "${!dev##*loop*}" ] && [ ! -z "${!dev##*tmpfs*}" ] && [ ! -z "${!dev##*none*}" ] && echo $color "[${titlecolor}STORAGE DEVICE${colorend}]: ${neutral}${!dev}${colorend} [${titlecolor}TOTAL SIZE${colorend}]: ${neutral}${!totalsize}B${colorend} [${titlecolor}FREE SPACE${colorend}]: ${diskcolor}${!freespace}B${colorend} ${sysdisktype}[${titlecolor}MOUNTPOINT${colorend}]:${neutral}${!diskmount}${colorend}"
  let i=i+1
 done
 i=1
@@ -224,11 +224,11 @@ while [ $i -le $ethcount ]; do
  eval sysethtx=\$"sysethtx${i}"
  eval sysethinterface=\$"sysethinterface${i}"
  eval sysethip=\$"sysethip${i}"
- [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} - [${titlecolor}IP${colorend}]: ${neutral}${sysethip}${colorend} - [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} - [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
+ [ ! -z "$sysethinterface" ] && [ ! -z "$sysethrx" ] && echo $color "[${titlecolor}NETWORK INTERFACE${colorend}]: ${neutral}${sysethinterface}${colorend} [${titlecolor}IP${colorend}]: ${neutral}${sysethip}${colorend} [${titlecolor}RECEIVED${colorend}]: ${neutral}${sysethrx}B${colorend} [${titlecolor}SENT${colorend}]: ${neutral}${sysethtx}B${colorend}"
  let i=i+1
 done
 [ ! -z "$sysconnection" ] && sysconnection="${sysconnection}ms on Google ping" || sysconnection="Offline"
-[ ! -z "$sysexternalip" ] && sysexternalip=" - [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
+[ ! -z "$sysexternalip" ] && sysexternalip=" [${titlecolor}EXTERNAL IP${colorend}]: ${neutral}${sysexternalip}${colorend}"
 echo $color "[${titlecolor}INTERNET${colorend}]: ${neutral}${sysconnection}${colorend}${sysexternalip}"
 [ -z "$sysuptime" ] && sysuptime=$(uptime) || sysuptime="System is ${sysuptime/up/running}"
 echo $color "[${titlecolor}UPTIME${colorend}]: ${neutral}${sysuptime}${colorend}"
@@ -242,6 +242,6 @@ for i in main_func; do
  benchreal=$(grep "real" "$workdir/benchmarktmp" | cut -d " " -f 2)
  benchuser=$(grep "user" "$workdir/benchmarktmp" | cut -d " " -f 2)
  benchsys=$(grep "sys" "$workdir/benchmarktmp" | cut -d " " -f 2)
- echo $color "[${titlecolor}BENCHMARK EXEC TIME(SEC)${colorend}]: ${neutral}${benchreal}${colorend} - [${titlecolor}EXEC USER TIME${colorend}]: ${neutral}${benchuser}${colorend} - [${titlecolor}EXEC SYS TIME${colorend}]: ${neutral}${benchsys}${colorend}"
+ echo $color "[${titlecolor}BENCHMARK EXEC TIME(SEC)${colorend}]: ${neutral}${benchreal}${colorend} [${titlecolor}EXEC USER TIME${colorend}]: ${neutral}${benchuser}${colorend} [${titlecolor}EXEC SYS TIME${colorend}]: ${neutral}${benchsys}${colorend}"
  rm "$workdir/benchmarktmp"
 done

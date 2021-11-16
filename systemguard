@@ -1,0 +1,101 @@
+#!/bin/bash
+# systemguard script - by Perseus
+# This script checks for CPU, GPU temperatures and RAM, Disk usage limits
+# then executes a user defined failsafe command once it reaches a limit.
+#
+# You can set it to run with a crontab entry like: @reboot /home/$USER/systemguard
+
+# enable/disable temperature checks for CPU and GPU
+enable_cpu_temp=1
+enable_gpu_temp=1
+enable_ram_usage=1
+enable_disk_usage=1
+
+# timer to perform temperature checks in seconds
+interval_timer=5
+
+# CPU's temperature limit
+cpu_temp_limit=80
+
+# command(s) to execute after CPU's temperature limit is exceeded
+# Note: add it in /etc/sudoers if it requires privileges or run this script as root (or sudo)
+failsafe_command_cpu() {
+ echo "CPU BURNS"
+}
+
+# GPU's temperature limit
+gpu_temp_limit=80
+
+# command(s) to execute after CPU's temperature limit is exceeded (like shutdown. Typo on purpose.)
+failsafe_command_gpu() {
+ zenity --error --title="GPU IS CRITICAL!" --text="GPU is running currently at ${gpu_temp}°C!\nPress OK to shutdown now!" \
+  --width=250 && shhutdown -h now
+}
+
+# percentage number for RAM usage limit
+ram_usage_limit=90
+
+# command(s) to execute after RAM's usage limit is exceeded
+failsafe_command_ram() {
+ echo "failsafe command for ram. Usage: ${used_ram_percentage}%."
+}
+
+# disk mount point(s) to be checked (/run used here as an example on how to add/remove mount points)
+disk_mounts=(
+ "/"
+ "/run"
+)
+
+# percentage number for disk usage limit
+disk_usage_limit=90
+
+# command(s) to execute after Disk's usage limit is exceeded
+failsafe_command_disk() {
+ echo "failsafe command for disk. Mountpoint: $mountpoint. Usage: ${used_disk_percentage}%."
+}
+
+
+#--- DO NOT EDIT BELOW ---
+
+cputemp() {
+ cpu_temp=$(sensors | awk -F'.' '/Core 0/ {gsub("Core 0:|+",""); print int($1);exit}')
+ [ -z "$cpu_temp" ] && cpu_temp=$(sensors | awk '/Tdie/ {gsub("+",""); print int($2);exit}')
+ [ -z "$cpu_temp" ] || [ -z "${cpu_temp##*[!0-9]*}" ] && error "temperature" "CPU"
+ [ $cpu_temp -ge $cpu_temp_limit ] && failsafe_command_cpu
+}
+
+gputemp() {
+ gpu_temp=$(awk '{print substr($0,1,2)}' /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input)
+ [ -z "$gpu_temp" ] && gpu_temp=$(awk '{print substr($0,1,2)}' /sys/class/hwmon*/*/temp1_input)
+ [ -z "$gpu_temp" ] || [ -z "${gpu_temp##*[!0-9]*}" ] && error "temperature" "GPU"
+ [ $gpu_temp -ge $gpu_temp_limit ] && failsafe_command_gpu
+}
+
+ramusage() {
+ used_ram_percentage=$(free | awk '/Mem/{print int($3/$2 * 100)}')
+ [ -z "$used_ram_percentage" ] || [ -z "${used_ram_percentage##*[!0-9]*}" ] && error "usage" "RAM"
+ [ $used_ram_percentage -ge $ram_usage_limit ] && failsafe_command_ram
+}
+
+diskusage() {
+ for mountpoint in "${disk_mounts[@]}"; do
+  used_disk_percentage=$(df | grep -w "$mountpoint$" | awk '{print int($5)}')
+  [ -z "$used_disk_percentage" ] || [ -z "${used_disk_percentage##*[!0-9]*}" ] && error "usage" "Disk"
+  [ $used_disk_percentage -ge $disk_usage_limit ] && failsafe_command_disk
+ done
+}
+
+error() {
+ [ "$1" = "temperature" ] && echo "Error. Couldn't find ${2}'s temperature." && exit 1
+ [ "$1" = "usage" ] && echo "Error. Couldn't get ${2}'s usage value." && exit 1
+}
+
+while true; do
+ [ $enable_cpu_temp -eq 1 ] && cputemp
+ [ $enable_gpu_temp -eq 1 ] && gputemp
+ [ $enable_ram_usage -eq 1 ] && ramusage
+ [ $enable_disk_usage -eq 1 ] && diskusage
+ # Uncomment below for debug purposes
+ #echo "CPU temp: $cpu_temp. GPU temp: $gpu_temp."
+ sleep $interval_timer
+done
