@@ -1,0 +1,80 @@
+#!/bin/bash
+
+echo -e "########################\nbashmark v1.0 by Perseus\n########################\n"
+echo -e "It will create a temporary image file with dd and then it will execute sha1sum on it while outputs the time of each process.\nIt can also just add stress to your CPU to measure it's temperature.\n"
+echo -e "Usage:\nSingle numeric argument for file size in GBs\nFor CPU load stress: --stress 1 (for 1 minute CPU stress duration)\nFor extreme CPU load stress: --stress extreme 1 (for 1 minute CPU stress duration)\n\n"
+
+errorcheck() {
+ value="$1"
+ process="$3"
+ if [ "$2" = "integer" ]; then
+  [ -z "$value" ] || [ -z "${value##*[!0-9]*}" ] &&
+   echo -ne "\r\\033[KError. $process cannot be empty or non integer.\n" && exit 1
+ fi
+ true
+}
+
+convertsecs() {
+ ((h=${1}/3600))
+ ((m=(${1}%3600)/60))
+ ((s=${1}%60))
+ time=$(printf "%02d:%02d:%02d\n" $h $m $s)
+}
+
+diskload() {
+ filename="./$((RANDOM * RANDOM * RANDOM)).img"
+ start=$(date +%s)
+ dd if=/dev/zero of=$filename bs=4k iflag=fullblock,count_bytes count=${filesize}G status=none
+ end=$(date +%s)
+ runtime=$((end-start))
+ convertsecs $runtime
+}
+
+cpuload() {
+ start=$(date +%s)
+ sha1sum $filename >/dev/null
+ end=$(date +%s)
+ runtime=$((end-start))
+ convertsecs $runtime
+}
+
+progress() {
+ echo -ne "(00%)"
+ i=1
+ while [ $i -lt 11 ]; do
+  $@ #>/dev/null
+  p="${p}#"
+  echo -ne "\r\\033[K"
+  echo -ne "(${i}0%) $p"
+  let i=i+1
+ done
+ echo -ne "\r\\033[K"
+}
+
+cpustress() {
+ cores=$(awk '/cpu cores/{print $4;exit}' /proc/cpuinfo)
+ sockets=$(grep "physical id" /proc/cpuinfo | awk '{print $4}' | grep 1)
+ [ ! -z "$sockets" ] && let cores=cores+cores
+ [ "$2" = "extreme" ] && let cores=cores+cores && timer="$3" || timer="$2"
+ errorcheck "$timer" "integer" "CPU stress duration"
+ let timer=timer*60/10
+ for ((n=0;n<$cores;n++)); do
+  timeout $timer dd if=/dev/zero of=/dev/null &
+ done
+ wait
+}
+
+[ ! -z "$1" ] && [ "$1" = "--stress" ] && echo "Starting CPU stress (Ctrl+C to cancel)..." && progress cpustress $@ && echo "CPU stress is completed." && exit
+[ ! -z "$1" ] && filesize=$1 || read -rp "Enter a file size in GBs to benchmark with: " filesize
+errorcheck "$filesize" "integer" "File size"
+
+global_start=$(date +%s)
+echo -e "\n[Disk benchmark]: Creating an image file of ${filesize}GB..." && diskload && echo -e "Done. Time: $time."
+echo -e "\n[CPU benchmark]: Running sha1sum on the image file..." && cpuload && echo -e "Done. Time: $time."
+global_end=$(date +%s)
+runtime=$((global_end-global_start))
+convertsecs $runtime
+
+# Cleaning up
+[ -f $filename ] && rm $filename
+echo -e "\nbashmark completed. Time: $time."

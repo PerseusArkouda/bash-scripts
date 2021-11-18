@@ -33,6 +33,8 @@ procmem - Easily readable process memory consumption tool. Process string specif
 systemguard - Script that checks for CPU, GPU temperatures and RAM, Disk usage limits  
  which then executes a user defined failsafe command once it reaches a limit.
 
+bashmark - Script to quickly benchmark CPU and disk speed or add load stress to the CPU.  
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)
