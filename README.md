@@ -35,6 +35,8 @@ systemguard - Script that checks for CPU, GPU temperatures and RAM, Disk usage l
 
 bashmark - Script to quickly benchmark CPU and disk speed or add load stress to the CPU.  
 
+sslcheck - Check domain(s) for valid SSL certificates.
+
 systeminfo - Script to show a quick overview of the system's hardware and activity.
 
 ![systeminfo Screenshot](https://github.com/PerseusArkouda/bash-scripts/blob/master/systeminfo-Screenshot.jpg?raw=true)

@@ -1,0 +1,29 @@
+#!/bin/bash
+# Checks if SSL on domain(s) is valid (no output) and if it's not outputs a warning. Requires curl and date packages.
+# You can pass the domain(s) as arguments separated by spaces or define them here in domains array.
+
+# You can define your domain(s) below:
+domains=("https://domain1.com" "https://domain2.net")
+
+# You can enable below the SSL information output for each domain. It works only if SSL is valid.
+ssl_output=false
+
+# If no domain(s) in arguments, check the domain(s) defined in here if not empty.
+if [ -z "$*" ]; then
+ if grep -q "domain" <<<"${domains[@]}"; then
+  echo -e "Error: You have not passed any domain(s) as arguments and 'domains' array contains the default 'domain' catch word.\n
+  Insert your domain(s) or remove all 'domain' catch words from the 'domains' array."
+  exit 1
+ fi
+else
+ domains=($@)
+fi
+
+grep -q "http:" <<<"${domains[@]}" && echo -e "Warning: http protocol detected in domain(s). You should use https.\n"
+
+for i in "${domains[@]}"; do
+ chk_ssl=$(curl --insecure -vvI "$i" 2>&1 | awk 'BEGIN { cert=0 } /^\* SSL connection/ { cert=1 } /^\*/ { if (cert) print }')
+ grep -q "SSL certificate verify ok" <<<"$chk_ssl" || echo "$(date) - Warning: The SSL certificate is not valid for domain: $i!"
+ [ "$ssl_output" = true ] && [ ! -z "$chk_ssl" ] && echo -e "SSL Information for domain: ${i}\n${chk_ssl}\n"
+done
+
