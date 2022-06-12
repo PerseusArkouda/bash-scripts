@@ -1,0 +1,17 @@
+#!/bin/bash
+# Simplifies the way to send emails from terminal. Requires mailutils package.
+
+mailaddress="$1"
+subject="$2"
+mailbody="$3"
+attachment="$4"
+
+[ -z "$mailaddress" ] && echo -e "Error. Mail address is empty.\n
+Syntax: email \"mail address\" \"subject\" \"mail body (optional)\" \"attachment (optional)\"." &&
+exit 1
+
+if [ -z "$attachment" ]; then
+ mail -s "$subject" "$mailaddress" <<< "$mailbody"
+else
+ mail -A "$attachment" -s "$subject" "$mailaddress" <<< "$mailbody"
+fi
